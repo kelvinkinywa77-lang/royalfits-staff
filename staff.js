@@ -30,7 +30,7 @@ const $ = (id) => document.getElementById(id);
 
 let currentRole = null;
 let orders = [];
-
+let orderItemNames = {};
 /*
   IMPORTANT:
   This starter assumes a public.staff_roles table with
@@ -115,8 +115,6 @@ async function checkStaffRole(user) {
     "Signed in as " + user.email + " (" + currentRole + ")";
 }
 
-
-async function loadOrders() {
 
 async function loadOrders() {
   if (!currentRole) {
