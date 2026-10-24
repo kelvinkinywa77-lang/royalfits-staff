@@ -148,11 +148,17 @@ async function loadOrders() {
       .in("order_id", orderIds);
 
     if (itemsError) {
-      console.error("Order items error:", itemsError);
+  console.error("Order items error:", itemsError);
 
-      orders.forEach(order => {
-        orderItemNames[String(order.id)] = "Items unavailable";
-      });
+  showMessage(
+    "dashboardMessage",
+    "Could not load order items: " + itemsError.message
+  );
+
+  orders.forEach(order => {
+    orderItemNames[String(order.id)] = "Items unavailable";
+  });
+}
     } else {
       const orderItems = items || [];
 
