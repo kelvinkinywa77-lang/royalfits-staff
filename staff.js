@@ -10,7 +10,22 @@ const db = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
+window.addEventListener("error", function (event) {
+  const message = document.getElementById("loginMessage");
 
+  if (message) {
+    message.textContent = "JavaScript error: " + event.message;
+  }
+});
+
+window.addEventListener("unhandledrejection", function (event) {
+  const message = document.getElementById("loginMessage");
+
+  if (message) {
+    message.textContent =
+      "Login error: " + (event.reason?.message || String(event.reason));
+  }
+});
 const $ = (id) => document.getElementById(id);
 
 let currentRole = null;
