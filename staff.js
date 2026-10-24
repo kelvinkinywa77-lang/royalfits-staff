@@ -175,27 +175,48 @@ const searchable = [
   filtered.forEach((order) => {
     const tr = document.createElement("tr");
 
-    tr.append(makeCell(order.id));
+    
+tr.append(makeCell(order.id));
 tr.append(makeCell(order.customer_name || "Name not saved"));
 tr.append(makeCell(order.customer_email || "Email not saved"));
-tr.append(makeCell(order.mpesa_receipt_number || "Not paid yet"));
 
-    const actionCell = document.createElement("td");
-    const select = document.createElement("select");
-    select.setAttribute("aria-label", "Update delivery status for order " + order.id);
+// Payment receipt
+tr.append(
+  makeCell(order.mpesa_receipt_number || "Not paid yet")
+);
 
-    [
-      "pending",
-      "processing",
-      "shipped",
-      "delivered",
-      "cancelled"
-    ].forEach((status) => {
-      const option = document.createElement("option");
-      option.value = status;
-      option.textContent = status;
-      select.append(option);
-    });
+// Delivery update
+const actionCell = document.createElement("td");
+const select = document.createElement("select");
+
+select.setAttribute(
+  "aria-label",
+  "Update delivery status for order " + order.id
+);
+
+[
+  "pending",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled"
+].forEach((status) => {
+  const option = document.createElement("option");
+
+  option.value = status;
+  option.textContent =
+    status.charAt(0).toUpperCase() + status.slice(1);
+
+  if ((order.delivery_status || "pending") === status) {
+    option.selected = true;
+  }
+
+  select.append(option);
+});
+
+actionCell.append(select);
+tr.append(actionCell);
+
 
     select.value = [
       "pending", "processing", "shipped", "delivered", "cancelled"
