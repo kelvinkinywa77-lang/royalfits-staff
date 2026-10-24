@@ -235,33 +235,3 @@ footer {
   }
 }
 
-/* Fix staff dashboard orders table on phones */
-.customer-orders {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.customer-orders table {
-  width: 100%;
-  min-width: 850px;
-  border-collapse: collapse;
-  table-layout: auto;
-}
-
-.customer-orders th,
-.customer-orders td {
-  padding: 12px 10px;
-  text-align: left;
-  vertical-align: middle;
-  white-space: normal;
-}
-
-.customer-orders select {
-  min-width: 120px;
-  max-width: 100%;
-}
-
-.customer-orders button {
-  min-height: 36px;
-}
