@@ -1,5 +1,4 @@
-
-/* ROYAL FITS BOUTIQUE254 - STAFF DASHBOARD */
+/* ROYAL FITS BOUTIQUE254 - STAFF DASHBOARD */ 
 
 const SUPABASE_URL =
   "https://rutpxicmpjdqvrfoicnv.supabase.co";
@@ -179,7 +178,7 @@ const searchable = [
 tr.append(makeCell(order.id));
 tr.append(makeCell(order.buyer_name || "Name not saved"));
 tr.append(makeCell(order.buyer_email || "Email not saved"));
-
+tr.append(makeCell(order.mpesa_receipt_number || "Not paid yet"));
     const paymentCell = document.createElement("td");
     paymentCell.append(makeStatus(order.payment_status));
     tr.append(paymentCell);
@@ -340,3 +339,4 @@ db.auth.onAuthStateChange((event, session) => {
 });
 
 checkSession();
+
