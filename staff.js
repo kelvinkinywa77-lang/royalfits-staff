@@ -214,72 +214,7 @@ async function loadOrders() {
     }
   }
 
-    } else {            
-      const orderItems = items || [];
-
-      // Find product names saved directly in order_items.
-      const productIds = [
-        ...new Set(
-          orderItems
-            .map(item => item.product_id)
-            .filter(id => id != null)
-            .map(String)
-        )
-      ];
-
-      // If necessary, retrieve names from the products table.
-      let productNames = {};
-
-      if (productIds.length > 0) {
-        const { data: products, error: productsError } = await db
-          .from("products")
-          .select("id, name")
-          .in("id", productIds);
-
-        if (productsError) {
-          console.error("Product names error:", productsError);
-        } else {
-          (products || []).forEach(product => {
-            productNames[String(product.id)] = product.name;
-          });
-        }
-      }
-
-      // Group item names under their order IDs.
-      orderItems.forEach(item => {
-        const key = String(item.order_id);
-
-        const name =
-          item.product_name ||
-          item.name ||
-          productNames[String(item.product_id)] ||
-          (item.product_id != null
-            ? "Product ID: " + item.product_id
-            : "Unnamed item");
-
-        const quantity = Number(item.quantity || 1);
-        const displayName =
-          name + (quantity > 1 ? " × " + quantity : "");
-
-        if (!orderItemNames[key]) {
-          orderItemNames[key] = [];
-        }
-
-        orderItemNames[key].push(displayName);
-      });
-
-      orders.forEach(order => {
-        const key = String(order.id);
-
-        if (!orderItemNames[key]) {
-          orderItemNames[key] = ["No items found"];
-        } else if (Array.isArray(orderItemNames[key])) {
-          orderItemNames[key] = orderItemNames[key].join(", ");
-        }
-      });
-    }
-  }
-
+    
   renderOrders();
 
   showMessage(
@@ -287,9 +222,6 @@ async function loadOrders() {
     "Orders refreshed. " + orders.length + " order(s) loaded."
   );
 }
-
-
-
 
 function renderOrders() {
   const tbody = $("ordersBody");
