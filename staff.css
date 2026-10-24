@@ -1,0 +1,236 @@
+
+:root {
+  --orange: #c87528;
+  --dark: #25372b;
+  --cream: #fff8ec;
+  --border: #eadfce;
+  --green: #28734a;
+  --red: #b42318;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--cream);
+  color: #292929;
+}
+
+.topbar {
+  background: var(--dark);
+  color: white;
+  padding: 20px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 23px;
+}
+
+.topbar p {
+  margin: 7px 0 0;
+  color: #f4d9b5;
+}
+
+.container {
+  width: min(1400px, 94%);
+  margin: 30px auto;
+}
+
+.panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 5px 18px #3020100d;
+}
+
+.login-panel {
+  max-width: 440px;
+  margin: 40px auto;
+}
+
+label {
+  display: block;
+  margin: 16px 0 7px;
+  font-weight: bold;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cfc6b9;
+  border-radius: 7px;
+  font: inherit;
+  background: white;
+}
+
+button {
+  cursor: pointer;
+  border: 0;
+  border-radius: 7px;
+  padding: 11px 16px;
+  font-weight: bold;
+}
+
+.primary-btn {
+  width: 100%;
+  margin-top: 20px;
+  background: var(--orange);
+  color: white;
+}
+
+.secondary-btn {
+  background: var(--dark);
+  color: white;
+}
+
+.logout-btn {
+  background: #fff;
+  color: var(--dark);
+}
+
+button:hover {
+  opacity: 0.88;
+}
+
+.welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.welcome h2 {
+  margin-bottom: 5px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  border-left: 5px solid var(--orange);
+  box-shadow: 0 3px 12px #3020100d;
+}
+
+.stat-card span {
+  display: block;
+  font-size: 14px;
+  color: #666;
+}
+
+.stat-card strong {
+  display: block;
+  font-size: 28px;
+  margin-top: 10px;
+  color: var(--dark);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+table {
+  width: 100%;
+  min-width: 950px;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 13px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  background: #f8eee0;
+}
+
+td select {
+  min-width: 140px;
+}
+
+.status {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #eee;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status.paid,
+.status.delivered {
+  color: #17663b;
+  background: #e0f5e7;
+}
+
+.status.unpaid,
+.status.pending {
+  color: #8b5700;
+  background: #fff0c7;
+}
+
+.status.failed,
+.status.cancelled {
+  color: var(--red);
+  background: #ffe5e5;
+}
+
+.message {
+  min-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+footer {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 800px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .welcome {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topbar h1 {
+    font-size: 19px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+}
