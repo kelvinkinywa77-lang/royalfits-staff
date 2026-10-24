@@ -138,8 +138,9 @@ function renderOrders() {
     
 const searchable = [
   order.id,
-  order.buyer_name,
-  order.buyer_email,
+  order.customer_name,
+  order.customer_email,
+  order.customer_phone,
   order.mpesa_phone
 ].map(safeText).join(" ").toLowerCase();
 
@@ -174,18 +175,10 @@ const searchable = [
   filtered.forEach((order) => {
     const tr = document.createElement("tr");
 
-    
-tr.append(makeCell(order.id));
-tr.append(makeCell(order.buyer_name || "Name not saved"));
-tr.append(makeCell(order.buyer_email || "Email not saved"));
+    tr.append(makeCell(order.id));
+tr.append(makeCell(order.customer_name || "Name not saved"));
+tr.append(makeCell(order.customer_email || "Email not saved"));
 tr.append(makeCell(order.mpesa_receipt_number || "Not paid yet"));
-    const paymentCell = document.createElement("td");
-    paymentCell.append(makeStatus(order.payment_status));
-    tr.append(paymentCell);
-
-    const deliveryCell = document.createElement("td");
-    deliveryCell.append(makeStatus(order.delivery_status));
-    tr.append(deliveryCell);
 
     const actionCell = document.createElement("td");
     const select = document.createElement("select");
