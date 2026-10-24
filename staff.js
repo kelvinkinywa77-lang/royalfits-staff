@@ -136,6 +136,7 @@ async function loadOrders() {
 
   orders = data || [];
 
+ 
   // Load the items belonging to these orders.
   orderItemNames = {};
 
@@ -148,18 +149,72 @@ async function loadOrders() {
       .in("order_id", orderIds);
 
     if (itemsError) {
-  console.error("Order items error:", itemsError);
+      console.error("Order items error:", itemsError);
 
-  showMessage(
-    "dashboardMessage",
-    "Could not load order items: " + itemsError.message
-  );
-
-  orders.forEach(order => {
-    orderItemNames[String(order.id)] = "Items unavailable";
-  });
-}
+      orders.forEach(order => {
+        orderItemNames[String(order.id)] = "Items unavailable";
+      });
     } else {
+      const orderItems = items || [];
+      const productIds = [
+        ...new Set(
+          orderItems
+            .map(item => item.product_id)
+            .filter(id => id != null)
+            .map(String)
+        )
+      ];
+
+      let productNames = {};
+
+      if (productIds.length > 0) {
+        const { data: products, error: productsError } = await db
+          .from("products")
+          .select("id, name")
+          .in("id", productIds);
+
+        if (productsError) {
+          console.error("Product names error:", productsError);
+        } else {
+          (products || []).forEach(product => {
+            productNames[String(product.id)] = product.name;
+          });
+        }
+      }
+
+      orderItems.forEach(item => {
+        const key = String(item.order_id);
+
+        const name =
+          item.product_name ||
+          item.name ||
+          productNames[String(item.product_id)] ||
+          (item.product_id != null
+            ? "Product ID: " + item.product_id
+            : "Unnamed item");
+
+        const quantity = Number(item.quantity || 1);
+        const displayName =
+          name + (quantity > 1 ? " × " + quantity : "");
+
+        if (!orderItemNames[key]) {
+          orderItemNames[key] = [];
+        }
+
+        orderItemNames[key].push(displayName);
+      });
+
+      orders.forEach(order => {
+        const key = String(order.id);
+
+        orderItemNames[key] = orderItemNames[key]
+          ? orderItemNames[key].join(", ")
+          : "No items found";
+      });
+    }
+  }
+
+    } else {            
       const orderItems = items || [];
 
       // Find product names saved directly in order_items.
