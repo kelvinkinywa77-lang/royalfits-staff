@@ -292,56 +292,9 @@ function renderOrders() {
   });
 }
 
-    select.value = [
-      "pending", "processing", "shipped", "delivered", "cancelled"
-    ].includes(safeText(order.delivery_status).toLowerCase())
-      ? safeText(order.delivery_status).toLowerCase()
-      : "pending";
-
-    const updateButton = document.createElement("button");
-    updateButton.type = "button";
-    updateButton.textContent = "Save";
-    updateButton.className = "secondary-btn";
-    updateButton.style.marginTop = "8px";
-
-    updateButton.addEventListener("click", async () => {
-      if (!confirm("Update delivery status for order " + order.id + "?")) {
-        return;
-      }
-
+    
+    
       updateButton.disabled = true;
-
-      try {
-        /*
-          Delivery updates are only safe once your orders
-          table has an appropriate staff-only UPDATE policy.
-        */
-        const { error } = await db
-          .from("orders")
-          .update({ delivery_status: select.value })
-          .eq("id", order.id);
-
-        if (error) throw error;
-
-        order.delivery_status = select.value;
-        renderOrders();
-        showMessage("dashboardMessage", "Delivery status updated.");
-      } catch (error) {
-        console.error(error);
-        showMessage(
-          "dashboardMessage",
-          "Update failed. Check the delivery_status column and staff-only database permissions."
-        );
-      } finally {
-        updateButton.disabled = false;
-      }
-    });
-
-    actionCell.append(select, document.createElement("br"), updateButton);
-    tr.append(actionCell);
-    tbody.append(tr);
-  });
-}
 
 async function showDashboard(user) {
   $("loginPanel").hidden = true;
