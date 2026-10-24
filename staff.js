@@ -238,14 +238,14 @@ function renderOrders() {
 
   const filtered = orders.filter((order) => {
     const searchable = [
-      order.id,
-      order.customer_name,
-      order.customer_email,
-      order.customer_phone,
-      order.mpesa_phone,
-      order.mpesa_receipt_number
-    ].map(safeText).join(" ").toLowerCase();
-
+  order.id,
+  order.customer_name,
+  order.customer_email,
+  order.customer_phone,
+  order.mpesa_phone,
+  order.mpesa_receipt_number,
+  orderItemNames[String(order.id)]
+].map(safeText).join(" ").toLowerCase();
     return searchable.includes(search);
   });
 
@@ -280,8 +280,12 @@ function renderOrders() {
 
     // 1. Order ID
     tr.append(makeCell(order.id));
-
-    // 2. Customer name
+// order name
+    
+    tr.append(
+  makeCell(orderItemNames[String(order.id)] || "No items found")
+);
+    // 2(. Customer name
     tr.append(makeCell(order.customer_name || "Name not saved"));
 
     // 3. Contact details
