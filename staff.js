@@ -292,10 +292,6 @@ function renderOrders() {
   });
 }
 
-    
-    
-      updateButton.disabled = true;
-
 async function showDashboard(user) {
   $("loginPanel").hidden = true;
   $("dashboardPanel").hidden = false;
