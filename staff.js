@@ -128,6 +128,7 @@ async function loadOrders() {
   );
 }
 
+
 function renderOrders() {
   const tbody = $("ordersBody");
   const search = $("searchInput").value.trim().toLowerCase();
@@ -135,18 +136,19 @@ function renderOrders() {
   tbody.replaceChildren();
 
   const filtered = orders.filter((order) => {
-    
-const searchable = [
-  order.id,
-  order.customer_name,
-  order.customer_email,
-  order.customer_phone,
-  order.mpesa_phone
-].map(safeText).join(" ").toLowerCase();
+    const searchable = [
+      order.id,
+      order.customer_name,
+      order.customer_email,
+      order.customer_phone,
+      order.mpesa_phone,
+      order.mpesa_receipt_number
+    ].map(safeText).join(" ").toLowerCase();
 
     return searchable.includes(search);
   });
 
+  // Dashboard statistics
   $("totalOrders").textContent = orders.length;
 
   $("paidOrders").textContent = orders.filter(
@@ -166,7 +168,7 @@ const searchable = [
   if (!filtered.length) {
     const tr = document.createElement("tr");
     const td = makeCell("No matching orders found.");
-    td.colSpan = 7;
+    td.colSpan = 8;
     tr.append(td);
     tbody.append(tr);
     return;
@@ -175,48 +177,120 @@ const searchable = [
   filtered.forEach((order) => {
     const tr = document.createElement("tr");
 
-    
-tr.append(makeCell(order.id));
-tr.append(makeCell(order.customer_name || "Name not saved"));
-tr.append(makeCell(order.customer_email || "Email not saved"));
+    // 1. Order ID
+    tr.append(makeCell(order.id));
 
-// Payment receipt
-tr.append(
-  makeCell(order.mpesa_receipt_number || "Not paid yet")
-);
+    // 2. Customer name
+    tr.append(makeCell(order.customer_name || "Name not saved"));
 
-// Delivery update
-const actionCell = document.createElement("td");
-const select = document.createElement("select");
+    // 3. Contact details
+    const contact = [
+      order.customer_email,
+      order.customer_phone || order.mpesa_phone
+    ].filter(Boolean).join(" / ");
 
-select.setAttribute(
-  "aria-label",
-  "Update delivery status for order " + order.id
-);
+    tr.append(makeCell(contact || "Contact not saved"));
 
-[
-  "pending",
-  "processing",
-  "shipped",
-  "delivered",
-  "cancelled"
-].forEach((status) => {
-  const option = document.createElement("option");
+    // 4. Total amount
+    tr.append(makeCell(money(order.total_amount)));
 
-  option.value = status;
-  option.textContent =
-    status.charAt(0).toUpperCase() + status.slice(1);
+    // 5. Payment status
+    tr.append(makeStatus(order.payment_status || "Pending"));
 
-  if ((order.delivery_status || "pending") === status) {
-    option.selected = true;
-  }
+    // 6. M-PESA reference
+    tr.append(
+      makeCell(order.mpesa_receipt_number || "Not paid yet")
+    );
 
-  select.append(option);
-});
+    // 7. Current delivery status
+    tr.append(makeStatus(order.delivery_status || "pending"));
 
-actionCell.append(select);
-tr.append(actionCell);
+    // 8. Delivery update controls
+    const actionCell = document.createElement("td");
+    const select = document.createElement("select");
 
+    select.setAttribute(
+      "aria-label",
+      "Update delivery status for order " + order.id
+    );
+
+    const statuses = [
+      "pending",
+      "processing",
+      "shipped",
+      "delivered",
+      "cancelled"
+    ];
+
+    statuses.forEach((status) => {
+      const option = document.createElement("option");
+      option.value = status;
+      option.textContent =
+        status.charAt(0).toUpperCase() + status.slice(1);
+      select.append(option);
+    });
+
+    const currentStatus =
+      safeText(order.delivery_status).toLowerCase();
+
+    select.value = statuses.includes(currentStatus)
+      ? currentStatus
+      : "pending";
+
+    const updateButton = document.createElement("button");
+    updateButton.type = "button";
+    updateButton.textContent = "Save";
+    updateButton.className = "secondary-btn";
+    updateButton.style.marginTop = "8px";
+
+    updateButton.addEventListener("click", async () => {
+      const newStatus = select.value;
+
+      if (!confirm(
+        "Update delivery status for order " +
+        order.id + " to " + newStatus + "?"
+      )) {
+        return;
+      }
+
+      updateButton.disabled = true;
+      showMessage("dashboardMessage", "Saving delivery update...");
+
+      try {
+        const { error } = await db
+          .from("orders")
+          .update({ delivery_status: newStatus })
+          .eq("id", order.id);
+
+        if (error) throw error;
+
+        order.delivery_status = newStatus;
+        renderOrders();
+
+        showMessage(
+          "dashboardMessage",
+          "Delivery status saved successfully."
+        );
+      } catch (error) {
+        console.error("Delivery update error:", error);
+
+        showMessage(
+          "dashboardMessage",
+          "Delivery update failed: " + error.message
+        );
+      } finally {
+        updateButton.disabled = false;
+      }
+    });
+
+    actionCell.append(select);
+    actionCell.append(document.createElement("br"));
+    actionCell.append(updateButton);
+
+    tr.append(actionCell);
+    tbody.append(tr);
+  });
+}
 
     select.value = [
       "pending", "processing", "shipped", "delivered", "cancelled"
