@@ -36,6 +36,49 @@
     </section>
 
     <section id="dashboardPanel" hidden>
+      <section class="product-admin">
+  <h2>Add New Product</h2>
+  <p>Add a product to the ROYAL FITS online shop.</p>
+
+  <form id="addProductForm">
+    <label for="productName">Product name</label>
+    <input id="productName" type="text" required
+           placeholder="e.g. Ladies Sneakers">
+
+    <label for="productCategory">Category</label>
+    <select id="productCategory" required>
+      <option value="Women">Women</option>
+      <option value="Men">Men</option>
+      <option value="Shoes">Shoes</option>
+      <option value="Accessories">Accessories</option>
+    </select>
+
+    <label for="productPrice">Price (KSh)</label>
+    <input id="productPrice" type="number" min="0.01"
+           step="0.01" required>
+
+    <label for="productOldPrice">Old price (optional)</label>
+    <input id="productOldPrice" type="number" min="0"
+           step="0.01">
+
+    <label for="productImage">Product image URL</label>
+    <input id="productImage" type="url"
+           placeholder="https://example.com/product.jpg">
+
+    <label for="productColor">Colour</label>
+    <input id="productColor" type="text" placeholder="Black">
+
+    <label for="productStock">Stock quantity</label>
+    <input id="productStock" type="number" min="0"
+           step="1" value="1" required>
+
+    <button type="submit" id="addProductBtn">
+      Add Product to Shop
+    </button>
+
+    <p id="productMessage" role="status"></p>
+  </form>
+</section>
       <div class="welcome">
         <div>
           <h2>Staff Dashboard</h2>
