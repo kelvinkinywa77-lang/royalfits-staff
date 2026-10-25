@@ -1,4 +1,11 @@
 
+/* =====================================================
+   ROYAL FITS BOUTIQUE254
+   STAFF DASHBOARD STYLES
+===================================================== */
+
+/* 1. COLOURS */
+
 :root {
   --orange: #c87528;
   --dark: #25372b;
@@ -7,6 +14,8 @@
   --green: #28734a;
   --red: #b42318;
 }
+
+/* 2. GENERAL STYLES */
 
 * {
   box-sizing: border-box;
@@ -18,6 +27,17 @@ body {
   background: var(--cream);
   color: #292929;
 }
+
+[hidden] {
+  display: none !important;
+}
+
+.container {
+  width: min(1400px, 94%);
+  margin: 30px auto;
+}
+
+/* 3. HEADER */
 
 .topbar {
   background: var(--dark);
@@ -39,10 +59,7 @@ body {
   color: #f4d9b5;
 }
 
-.container {
-  width: min(1400px, 94%);
-  margin: 30px auto;
-}
+/* 4. PANELS */
 
 .panel {
   background: white;
@@ -57,6 +74,8 @@ body {
   max-width: 440px;
   margin: 40px auto;
 }
+
+/* 5. FORMS AND INPUTS */
 
 label {
   display: block;
@@ -74,6 +93,14 @@ select {
   font: inherit;
   background: white;
 }
+
+input:focus,
+select:focus {
+  outline: 2px solid var(--orange);
+  outline-offset: 1px;
+}
+
+/* 6. BUTTONS */
 
 button {
   cursor: pointer;
@@ -110,47 +137,7 @@ button:disabled {
   color: var(--dark);
 }
 
-.welcome {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.welcome h2 {
-  margin-bottom: 5px;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  border-left: 5px solid var(--orange);
-  box-shadow: 0 3px 12px #3020100d;
-}
-
-.stat-card span {
-  display: block;
-  font-size: 14px;
-  color: #666;
-}
-
-.stat-card strong {
-  display: block;
-  font-size: 28px;
-  margin-top: 10px;
-  color: var(--dark);
-}
-
-/* Dashboard menu */
+/* 7. DASHBOARD MENU */
 
 .dashboard-menu {
   display: grid;
@@ -174,7 +161,7 @@ button:disabled {
   background: #38533e;
 }
 
-/* Product management */
+/* 8. PRODUCT MANAGEMENT */
 
 .product-admin {
   background: white;
@@ -219,7 +206,66 @@ button:disabled {
   cursor: pointer;
 }
 
-/* Orders table */
+/* 9. REGISTERED USERS PANEL */
+
+#usersPanel {
+  width: 100%;
+  margin: 20px 0;
+  padding: 20px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 5px 18px #3020100d;
+}
+
+#usersPanel h2 {
+  color: var(--dark);
+  margin-top: 20px;
+}
+
+#usersPanel .table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+#usersPanel table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+  background: white;
+}
+
+#usersPanel th,
+#usersPanel td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+
+#usersPanel th {
+  background: var(--dark);
+  color: white;
+  white-space: nowrap;
+}
+
+#usersPanel td {
+  color: #292929;
+}
+
+#usersPanel button {
+  padding: 10px 16px;
+  margin: 8px 0 12px;
+}
+
+#usersMessage {
+  overflow-wrap: anywhere;
+}
+
+/* 10. CUSTOMER ORDERS TABLE */
 
 .table-wrap {
   width: 100%;
@@ -228,27 +274,27 @@ button:disabled {
   -webkit-overflow-scrolling: touch;
 }
 
-table {
+#customerOrdersPanel table {
   width: 100%;
   min-width: 1050px;
   border-collapse: collapse;
   background: white;
 }
 
-th,
-td {
+#customerOrdersPanel th,
+#customerOrdersPanel td {
   padding: 13px 10px;
   border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: middle;
 }
 
-th {
+#customerOrdersPanel th {
   background: #f8eee0;
   white-space: nowrap;
 }
 
-td {
+#customerOrdersPanel td {
   overflow-wrap: anywhere;
 }
 
@@ -287,7 +333,7 @@ td {
   margin: 4px auto;
 }
 
-td select {
+#ordersBody td select {
   min-width: 130px;
   margin-bottom: 6px;
 }
@@ -296,7 +342,49 @@ td select {
   margin-top: 10px;
 }
 
-/* Status labels */
+/* 11. ORDER STATISTICS */
+
+.welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.welcome h2 {
+  margin-bottom: 5px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  border-left: 5px solid var(--orange);
+  box-shadow: 0 3px 12px #3020100d;
+}
+
+.stat-card span {
+  display: block;
+  font-size: 14px;
+  color: #666;
+}
+
+.stat-card strong {
+  display: block;
+  font-size: 28px;
+  margin-top: 10px;
+  color: var(--dark);
+}
+
+/* 12. PAYMENT AND DELIVERY STATUS LABELS */
 
 .status {
   display: inline-block;
@@ -329,7 +417,7 @@ td select {
   background: #ffe5e5;
 }
 
-/* Messages and footer */
+/* 13. MESSAGES AND FOOTER */
 
 .message {
   min-height: 20px;
@@ -342,13 +430,7 @@ footer {
   color: #777;
 }
 
-/* Respect hidden sections */
-
-[hidden] {
-  display: none !important;
-}
-
-/* Tablet and mobile layout */
+/* 14. TABLET AND MOBILE LAYOUT */
 
 @media (max-width: 800px) {
   .stats {
@@ -365,6 +447,10 @@ footer {
   }
 
   .panel {
+    padding: 16px;
+  }
+
+  #usersPanel {
     padding: 16px;
   }
 }
@@ -391,42 +477,4 @@ footer {
   .logout-btn {
     padding: 9px;
   }
-}
-
-/* REGISTERED USERS TABLE */
-
-#usersPanel {
-  width: 100%;
-  margin-top: 20px;
-}
-
-#usersPanel .table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-#usersPanel table {
-  width: 100%;
-  min-width: 650px;
-  border-collapse: collapse;
-}
-
-#usersPanel th,
-#usersPanel td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-  overflow-wrap: anywhere;
-}
-
-#usersPanel th {
-  background: #243447;
-  color: white;
-}
-
-#usersPanel button {
-  padding: 10px 16px;
-  margin-bottom: 12px;
-  cursor: pointer;
 }
