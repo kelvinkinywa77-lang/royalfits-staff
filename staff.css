@@ -392,3 +392,41 @@ footer {
     padding: 9px;
   }
 }
+
+/* REGISTERED USERS TABLE */
+
+#usersPanel {
+  width: 100%;
+  margin-top: 20px;
+}
+
+#usersPanel .table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#usersPanel table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+}
+
+#usersPanel th,
+#usersPanel td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  overflow-wrap: anywhere;
+}
+
+#usersPanel th {
+  background: #243447;
+  color: white;
+}
+
+#usersPanel button {
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
