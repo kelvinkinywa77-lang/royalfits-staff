@@ -610,5 +610,21 @@ $("addProductForm").addEventListener("submit", async (event) => {
     button.disabled = false;
   }
 });
+
+const imageInput = document.getElementById("productImage");
+const imagePreview = document.getElementById("productPreview");
+
+imageInput.addEventListener("change", function () {
+  const file = this.files[0];
+
+  if (!file) {
+    imagePreview.hidden = true;
+    return;
+  }
+
+  imagePreview.src = URL.createObjectURL(file);
+  imagePreview.hidden = false;
+});
+
 checkSession();
 
