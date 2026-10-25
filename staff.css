@@ -315,3 +315,45 @@ td {
 #addProductBtn:disabled {
   opacity: 0.6;
 }
+
+.dashboard-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.menu-btn {
+  min-height: 110px;
+  padding: 20px 12px;
+  border: none;
+  border-radius: 14px;
+  background: #40185e;
+  color: white;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(38, 16, 51, 0.15);
+}
+
+.menu-btn:hover {
+  background: #572477;
+}
+
+.secondary-btn {
+  cursor: pointer;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 420px) {
+  .dashboard-menu {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-btn {
+    min-height: 75px;
+  }
+}
