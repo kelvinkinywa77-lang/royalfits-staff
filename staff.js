@@ -282,63 +282,30 @@ function renderOrders() {
 
     // 1. Order ID
    
-    // Order number
+   
+    // Order ID
     tr.append(makeCell(order.id));
 
-    // Item image and details
-    const itemCell = document.createElement("td");
+    // Order item image only
+    const imageCell = document.createElement("td");
     const orderItems = orderItemsByOrder[String(order.id)] || [];
 
-    if (orderItems.length === 0) {
-      itemCell.textContent =
-        orderItemNames[String(order.id)] || "No items found";
-    } else {
-      orderItems.forEach(item => {
-        const itemBox = document.createElement("div");
-        itemBox.style.display = "flex";
-        itemBox.style.alignItems = "center";
-        itemBox.style.gap = "10px";
-        itemBox.style.marginBottom = "10px";
+    orderItems.forEach(item => {
+      if (item.image_url) {
+        const img = document.createElement("img");
+        img.src = item.image_url;
+        img.alt = "Ordered product";
+        img.style.width = "70px";
+        img.style.height = "70px";
+        img.style.objectFit = "cover";
+        img.style.borderRadius = "8px";
+        img.style.margin = "3px";
+        img.loading = "lazy";
+        imageCell.appendChild(img);
+      }
+    });
 
-        if (item.image_url) {
-          const image = document.createElement("img");
-          image.src = item.image_url;
-          image.alt = item.name;
-          image.style.width = "65px";
-          image.style.height = "65px";
-          image.style.objectFit = "cover";
-          image.style.borderRadius = "8px";
-          image.style.flexShrink = "0";
-          image.loading = "lazy";
-
-          image.onerror = function () {
-            this.style.display = "none";
-          };
-
-          itemBox.append(image);
-        } else {
-          const noImage = document.createElement("span");
-          noImage.textContent = "No image";
-          itemBox.append(noImage);
-        }
-
-        const details = document.createElement("div");
-
-        const name = document.createElement("div");
-        name.textContent =
-          item.name + " × " + item.quantity;
-        name.style.fontWeight = "600";
-
-        const price = document.createElement("div");
-        price.textContent = money(item.price);
-
-        details.append(name, price);
-        itemBox.append(details);
-        itemCell.append(itemBox);
-      });
-    }
-
-    tr.append(itemCell);
+    tr.appendChild(imageCell);
  
     // 2(. Customer name
     tr.append(makeCell(order.customer_name || "Name not saved"));
