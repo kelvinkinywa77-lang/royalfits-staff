@@ -690,27 +690,6 @@ imageInput.addEventListener("change", function () {
 });
 /* ROYAL FITS BOUTIQUE254 - STAFF DASHBOARD */ 
 
-const SUPABASE_URL =
-  "https://rutpxicmpjdqvrfoicnv.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_iUUvMivOvVBbk4XvCCDWtQ_iOWSra5g";
-
-const db = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
-window.addEventListener("error", function (event) {
-  const message = document.getElementById("loginMessage");
-
-  if (message) {
-    message.textContent = "JavaScript error: " + event.message;
-  }
-});
-
-window.addEventListener("unhandledrejection", function (event) {
-  const message = document.getElementById("loginMessage");
-
   if (message) {
     message.textContent =
       "Login error: " + (event.reason?.message || String(event.reason));
