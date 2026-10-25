@@ -31,6 +31,7 @@ const $ = (id) => document.getElementById(id);
 let currentRole = null;
 let orders = [];
 let orderItemNames = {};
+let orderItemsByOrder = {};
 /*
   IMPORTANT:
   This starter assumes a public.staff_roles table with
@@ -137,8 +138,10 @@ async function loadOrders() {
   orders = data || [];
 
  
-  // Load the items belonging to these orders.
+  
+  // Load order items, including their images.
   orderItemNames = {};
+  orderItemsByOrder = {};
 
   if (orders.length > 0) {
     const orderIds = orders.map(order => order.id);
@@ -153,6 +156,7 @@ async function loadOrders() {
 
       orders.forEach(order => {
         orderItemNames[String(order.id)] = "Items unavailable";
+        orderItemsByOrder[String(order.id)] = [];
       });
     } else {
       const orderItems = items || [];
@@ -165,7 +169,7 @@ async function loadOrders() {
         )
       ];
 
-      let productNames = {};
+      const productNames = {};
 
       if (productIds.length > 0) {
         const { data: products, error: productsError } = await db
@@ -193,28 +197,33 @@ async function loadOrders() {
             ? "Product ID: " + item.product_id
             : "Unnamed item");
 
-        const quantity = Number(item.quantity || 1);
-        const displayName =
-          name + (quantity > 1 ? " × " + quantity : "");
-
-        if (!orderItemNames[key]) {
-          orderItemNames[key] = [];
+        if (!orderItemsByOrder[key]) {
+          orderItemsByOrder[key] = [];
         }
 
-        orderItemNames[key].push(displayName);
+        orderItemsByOrder[key].push({
+          name: name,
+          quantity: Number(item.quantity || 1),
+          price: item.price ?? item.unit_price,
+          image_url: item.image_url || ""
+        });
       });
 
       orders.forEach(order => {
         const key = String(order.id);
+        const itemsForOrder = orderItemsByOrder[key] || [];
 
-        orderItemNames[key] = orderItemNames[key]
-          ? orderItemNames[key].join(", ")
+        orderItemNames[key] = itemsForOrder.length
+          ? itemsForOrder.map(item =>
+              item.name + (item.quantity > 1
+                ? " × " + item.quantity
+                : "")
+            ).join(", ")
           : "No items found";
       });
     }
   }
 
-    
   renderOrders();
 
   showMessage(
@@ -272,12 +281,65 @@ function renderOrders() {
     const tr = document.createElement("tr");
 
     // 1. Order ID
+   
+    // Order number
     tr.append(makeCell(order.id));
-// order name
-    
-    tr.append(
-  makeCell(orderItemNames[String(order.id)] || "No items found")
-);
+
+    // Item image and details
+    const itemCell = document.createElement("td");
+    const orderItems = orderItemsByOrder[String(order.id)] || [];
+
+    if (orderItems.length === 0) {
+      itemCell.textContent =
+        orderItemNames[String(order.id)] || "No items found";
+    } else {
+      orderItems.forEach(item => {
+        const itemBox = document.createElement("div");
+        itemBox.style.display = "flex";
+        itemBox.style.alignItems = "center";
+        itemBox.style.gap = "10px";
+        itemBox.style.marginBottom = "10px";
+
+        if (item.image_url) {
+          const image = document.createElement("img");
+          image.src = item.image_url;
+          image.alt = item.name;
+          image.style.width = "65px";
+          image.style.height = "65px";
+          image.style.objectFit = "cover";
+          image.style.borderRadius = "8px";
+          image.style.flexShrink = "0";
+          image.loading = "lazy";
+
+          image.onerror = function () {
+            this.style.display = "none";
+          };
+
+          itemBox.append(image);
+        } else {
+          const noImage = document.createElement("span");
+          noImage.textContent = "No image";
+          itemBox.append(noImage);
+        }
+
+        const details = document.createElement("div");
+
+        const name = document.createElement("div");
+        name.textContent =
+          item.name + " × " + item.quantity;
+        name.style.fontWeight = "600";
+
+        const price = document.createElement("div");
+        price.textContent = money(item.price);
+
+        details.append(name, price);
+        itemBox.append(details);
+        itemCell.append(itemBox);
+      });
+    }
+
+    tr.append(itemCell);
+ 
     // 2(. Customer name
     tr.append(makeCell(order.customer_name || "Name not saved"));
 
