@@ -525,6 +525,90 @@ db.auth.onAuthStateChange((event, session) => {
     $("logoutBtn").hidden = true;
   }
 });
+// ADD NEW PRODUCT TO ROYAL FITS SHOP
 
+$("addProductForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const message = $("productMessage");
+  const button = $("addProductBtn");
+
+  if (!currentRole || !["admin", "staff"].includes(currentRole)) {
+    message.textContent = "You are not authorized to add products.";
+    return;
+  }
+
+  const name = $("productName").value.trim();
+  const category = $("productCategory").value;
+  const price = Number($("productPrice").value);
+  const oldPriceInput = $("productOldPrice").value.trim();
+  const imageUrl = $("productImage").value.trim();
+  const color = $("productColor").value.trim();
+  const stock = Number($("productStock").value);
+
+  if (!name || !Number.isFinite(price) || price <= 0) {
+    message.textContent = "Enter a valid product name and price.";
+    return;
+  }
+
+  if (!Number.isInteger(stock) || stock < 0) {
+    message.textContent = "Stock must be a whole number of 0 or more.";
+    return;
+  }
+
+  if (
+    oldPriceInput !== "" &&
+    (!Number.isFinite(Number(oldPriceInput)) ||
+      Number(oldPriceInput) < 0)
+  ) {
+    message.textContent = "Enter a valid old price.";
+    return;
+  }
+
+  if (
+    imageUrl &&
+    (!/^https:\/\//i.test(imageUrl))
+  ) {
+    message.textContent = "Use a secure HTTPS image URL.";
+    return;
+  }
+
+  const product = {
+    name,
+    category,
+    price,
+    old_price: oldPriceInput === ""
+      ? null
+      : Number(oldPriceInput),
+    image_url: imageUrl || null,
+    color: color || null,
+    stock,
+    is_active: true
+  };
+
+  button.disabled = true;
+  message.textContent = "Saving product...";
+
+  try {
+    const { error } = await db
+      .from("products")
+      .insert(product);
+
+    if (error) throw error;
+
+    message.textContent =
+      "Product added successfully! Refresh your online shop to check it.";
+
+    $("addProductForm").reset();
+    $("productStock").value = "1";
+  } catch (error) {
+    console.error("Add product error:", error);
+
+    message.textContent =
+      "Could not add product: " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
 checkSession();
 
