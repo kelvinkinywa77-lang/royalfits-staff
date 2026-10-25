@@ -14,6 +14,7 @@
 </head>
 
 <body>
+  <!-- HEADER -->
   <header class="topbar">
     <div>
       <h1>Royal Fits Boutique254</h1>
@@ -59,44 +60,55 @@
         </button>
       </form>
 
-      <p id="loginMessage" class="message" role="status"></p>
+      <p
+        id="loginMessage"
+        class="message"
+        role="status">
+      </p>
     </section>
 
     <!-- STAFF DASHBOARD -->
     <section id="dashboardPanel" hidden>
+
       <!-- MAIN MENU -->
       <section id="homePanel" class="panel">
         <h2>Staff Dashboard</h2>
 
-        <p id="staffInfo">Checking account permissions...</p>
+        <p id="staffInfo">
+          Checking account permissions...
+        </p>
 
-        
-<div class="dashboard-menu">
-  <button
-    type="button"
-    id="customerOrdersBtn"
-    class="menu-btn">
-    🛍️ Customer Orders
-  </button>
+        <div class="dashboard-menu">
 
-  <button
-    type="button"
-    id="addProductMenuBtn"
-    class="menu-btn">
-    ➕ Add Product
-  </button>
+          <button
+            type="button"
+            id="customerOrdersBtn"
+            class="menu-btn">
+            🛍️ Customer Orders
+          </button>
 
-  <button
-    type="button"
-    id="usersBtn"
-    class="menu-btn">
-    👥 Users
-  </button>
-</div>
+          <button
+            type="button"
+            id="addProductMenuBtn"
+            class="menu-btn">
+            ➕ Add Product
+          </button>
 
-      
-      <!-- ADD PRODUCT -->
-      <section id="productPanel" class="product-admin" hidden>
+          <button
+            type="button"
+            id="usersBtn"
+            class="menu-btn">
+            👥 Users
+          </button>
+
+        </div>
+      </section>
+
+      <!-- ADD PRODUCT PANEL -->
+      <section
+        id="productPanel"
+        class="product-admin"
+        hidden>
 
         <button
           type="button"
@@ -133,7 +145,9 @@
             step="0.01"
             required>
 
-          <label for="productOldPrice">Old price (optional)</label>
+          <label for="productOldPrice">
+            Old price (optional)
+          </label>
           <input
             id="productOldPrice"
             type="number"
@@ -143,7 +157,6 @@
           <label for="productImage">
             Choose product image from phone or laptop
           </label>
-
           <input
             id="productImage"
             type="file"
@@ -178,37 +191,60 @@
             Add Product to Shop
           </button>
 
-          <p id="productMessage" class="message" role="status"></p>
+          <p
+            id="productMessage"
+            class="message"
+            role="status">
+          </p>
+
         </form>
       </section>
-<section id="usersPanel" hidden>
-  <h2>Registered Users</h2>
 
-  <button id="refreshUsersBtn" type="button">
-    Refresh Users
-  </button>
+      <!-- REGISTERED USERS PANEL -->
+      <section id="usersPanel" hidden>
 
-  <p id="usersMessage" role="status"></p>
+        <button
+          type="button"
+          id="backFromUsersBtn"
+          class="secondary-btn">
+          ← Back to Dashboard
+        </button>
 
-  <div class="table-responsive">
-    <table>
-      <thead>
-        <tr>
-          <th>Full Name</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Registration Date</th>
-        </tr>
-      </thead>
-      <tbody id="usersTableBody">
-        <tr>
-          <td colspan="4">Click Users to load customers.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-      <!-- CUSTOMER ORDERS -->
+        <h2>Registered Users</h2>
+        <p>View registered customer account details.</p>
+
+        <button
+          id="refreshUsersBtn"
+          type="button"
+          class="secondary-btn">
+          Refresh Users
+        </button>
+
+        <p id="usersMessage" class="message" role="status"></p>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Registration Date</th>
+              </tr>
+            </thead>
+
+            <tbody id="usersTableBody">
+              <tr>
+                <td colspan="4">
+                  Click Users to load customers.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CUSTOMER ORDERS PANEL -->
       <section id="customerOrdersPanel" hidden>
 
         <button
@@ -221,7 +257,9 @@
         <div class="welcome">
           <div>
             <h2>Customer Orders</h2>
-            <p>View customer payments and manage deliveries.</p>
+            <p>
+              View customer payments and manage deliveries.
+            </p>
           </div>
 
           <button
@@ -305,6 +343,7 @@
     </section>
   </main>
 
+  <!-- FOOTER -->
   <footer>
     <p>© 2026 Royal Fits Boutique254. Staff access only.</p>
   </footer>
