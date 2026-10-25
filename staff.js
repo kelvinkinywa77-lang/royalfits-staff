@@ -525,13 +525,16 @@ db.auth.onAuthStateChange((event, session) => {
     $("logoutBtn").hidden = true;
   }
 });
-// ADD NEW PRODUCT TO ROYAL FITS SHOP
+
+/* ADD PRODUCT WITH PHONE OR LAPTOP IMAGE UPLOAD */
 
 $("addProductForm").addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const message = $("productMessage");
   const button = $("addProductBtn");
+  const imageInput = $("productImage");
+  const file = imageInput.files[0];
 
   if (!currentRole || !["admin", "staff"].includes(currentRole)) {
     message.textContent = "You are not authorized to add products.";
@@ -542,7 +545,6 @@ $("addProductForm").addEventListener("submit", async (event) => {
   const category = $("productCategory").value;
   const price = Number($("productPrice").value);
   const oldPriceInput = $("productOldPrice").value.trim();
-  const imageUrl = $("productImage").value.trim();
   const color = $("productColor").value.trim();
   const stock = Number($("productStock").value);
 
@@ -565,51 +567,112 @@ $("addProductForm").addEventListener("submit", async (event) => {
     return;
   }
 
-  if (
-    imageUrl &&
-    (!/^https:\/\//i.test(imageUrl))
-  ) {
-    message.textContent = "Use a secure HTTPS image URL.";
+  if (!file) {
+    message.textContent = "Choose a product image first.";
     return;
   }
 
-  const product = {
-    name,
-    category,
-    price,
-    old_price: oldPriceInput === ""
-      ? null
-      : Number(oldPriceInput),
-    image_url: imageUrl || null,
-    color: color || null,
-    stock,
-    is_active: true
-  };
+  if (!file.type.startsWith("image/")) {
+    message.textContent = "Please select an image file.";
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    message.textContent = "Image must be 5 MB or smaller.";
+    return;
+  }
 
   button.disabled = true;
-  message.textContent = "Saving product...";
+  message.textContent = "Uploading image...";
+
+  let uploadedPath = null;
 
   try {
-    const { error } = await db
+    // Upload the selected image to Supabase Storage.
+    const extension = file.name.split(".").pop()
+      .toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const filePath =
+      Date.now() + "-" + crypto.randomUUID() + "." + extension;
+
+    const { data: uploadData, error: uploadError } =
+      await db.storage
+        .from("product-images")
+        .upload(filePath, file, {
+          contentType: file.type,
+          cacheControl: "3600",
+          upsert: false
+        });
+
+    if (uploadError) throw uploadError;
+
+    uploadedPath = uploadData.path;
+
+    // Generate the public HTTPS URL.
+    const { data: urlData } = db.storage
+      .from("product-images")
+      .getPublicUrl(uploadedPath);
+
+    const imageUrl = urlData.publicUrl;
+
+    if (!imageUrl.startsWith("https://")) {
+      throw new Error("Could not generate a secure image URL.");
+    }
+
+    // Save the product and its image URL.
+    message.textContent = "Saving product...";
+
+    const product = {
+      name,
+      category,
+      price,
+      old_price: oldPriceInput === ""
+        ? null
+        : Number(oldPriceInput),
+      image_url: imageUrl,
+      color: color || null,
+      stock,
+      is_active: true
+    };
+
+    const { error: productError } = await db
       .from("products")
       .insert(product);
 
-    if (error) throw error;
+    if (productError) throw productError;
 
     message.textContent =
-      "Product added successfully! Refresh your online shop to check it.";
+      "Product added! Image uploaded and URL saved successfully.";
 
     $("addProductForm").reset();
     $("productStock").value = "1";
+
+    const preview = $("productPreview");
+    preview.removeAttribute("src");
+    preview.hidden = true;
+
   } catch (error) {
-    console.error("Add product error:", error);
+    console.error("Product upload error:", error);
 
     message.textContent =
       "Could not add product: " + error.message;
+
+    // Clean up the uploaded image if product saving failed.
+    if (uploadedPath) {
+      const { error: cleanupError } = await db.storage
+        .from("product-images")
+        .remove([uploadedPath]);
+
+      if (cleanupError) {
+        console.error("Image cleanup error:", cleanupError);
+      }
+    }
   } finally {
     button.disabled = false;
   }
 });
+
+
 
 const imageInput = document.getElementById("productImage");
 const imagePreview = document.getElementById("productPreview");
