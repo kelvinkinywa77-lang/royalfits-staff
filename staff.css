@@ -235,3 +235,45 @@ footer {
   }
 }
 
+/* Staff orders table layout */
+#ordersBody td {
+  vertical-align: middle;
+  padding: 10px 8px;
+}
+
+/* Keep order images small and consistent */
+#ordersBody td img {
+  display: block;
+  width: 55px !important;
+  height: 55px !important;
+  object-fit: cover;
+  border-radius: 6px;
+  margin: 4px auto !important;
+}
+
+/* Keep table columns aligned */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* Allow horizontal scrolling on small screens */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+#ordersBody td:nth-child(1) {
+  min-width: 110px;
+}
+
+#ordersBody td:nth-child(2) {
+  min-width: 80px;
+}
+
