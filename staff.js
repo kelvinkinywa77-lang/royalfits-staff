@@ -597,7 +597,7 @@ $("addProductForm").addEventListener("submit", async (event) => {
 
     const { data: uploadData, error: uploadError } =
       await db.storage
-        .from("product-images.")
+        .from("product-images")
         .upload(filePath, file, {
           contentType: file.type,
           cacheControl: "3600",
@@ -610,7 +610,7 @@ $("addProductForm").addEventListener("submit", async (event) => {
 
     // Generate the public HTTPS URL.
     const { data: urlData } = db.storage
-      .from("product-images.")
+      .from("product-images")
       .getPublicUrl(uploadedPath);
 
     const imageUrl = urlData.publicUrl;
@@ -660,7 +660,7 @@ $("addProductForm").addEventListener("submit", async (event) => {
     // Clean up the uploaded image if product saving failed.
     if (uploadedPath) {
       const { error: cleanupError } = await db.storage
-        .from("product-images.")
+        .from("product-images")
         .remove([uploadedPath]);
 
       if (cleanupError) {
