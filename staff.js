@@ -859,6 +859,88 @@ if (backFromOrdersBtn) {
   });
 }
 
+/* ROYAL FITS - REGISTERED USERS */
+
+const usersBtn = document.getElementById("usersBtn");
+const usersPanel = document.getElementById("usersPanel");
+const usersTableBody = document.getElementById("usersTableBody");
+const usersMessage = document.getElementById("usersMessage");
+const refreshUsersBtn = document.getElementById("refreshUsersBtn");
+
+async function loadRegisteredUsers() {
+  usersMessage.textContent = "Loading registered users...";
+  usersTableBody.replaceChildren();
+
+  try {
+    const { data: sessionData, error: sessionError } =
+      await db.auth.getSession();
+
+    if (sessionError || !sessionData.session) {
+      throw new Error("Please log in to the staff dashboard first.");
+    }
+
+    let page = 1;
+    let allUsers = [];
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await db.functions.invoke(
+        "staff-users",
+        { body: { page } }
+      );
+
+      if (error) throw error;
+      if (!data || data.error) {
+        throw new Error(data?.error || "Could not load users.");
+      }
+
+      allUsers = allUsers.concat(data.users || []);
+      hasMore = data.hasMore === true;
+      page++;
+    }
+
+    if (allUsers.length === 0) {
+      usersTableBody.innerHTML =
+        '<tr><td colspan="4">No registered users found.</td></tr>';
+    } else {
+      allUsers.forEach((user) => {
+        const row = document.createElement("tr");
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = user.full_name || "Not provided";
+
+        const emailCell = document.createElement("td");
+        emailCell.textContent = user.email || "Not provided";
+
+        const phoneCell = document.createElement("td");
+        phoneCell.textContent = user.phone || "Not provided";
+
+        const dateCell = document.createElement("td");
+        dateCell.textContent = user.created_at
+          ? new Date(user.created_at).toLocaleString()
+          : "Not available";
+
+        row.append(nameCell, emailCell, phoneCell, dateCell);
+        usersTableBody.appendChild(row);
+      });
+    }
+
+    usersMessage.textContent =
+      "Registered users: " + allUsers.length;
+  } catch (error) {
+    console.error("Users loading error:", error);
+    usersMessage.textContent =
+      error.message || "Failed to load users.";
+  }
+}
+
+usersBtn?.addEventListener("click", () => {
+  usersPanel.hidden = false;
+  loadRegisteredUsers();
+});
+
+refreshUsersBtn?.addEventListener("click", loadRegisteredUsers);
+
 /* START THE STAFF DASHBOARD */
 
 checkSession();
