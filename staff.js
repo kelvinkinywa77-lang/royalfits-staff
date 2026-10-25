@@ -283,33 +283,57 @@ function renderOrders() {
     // 1. Order ID
    
    
-    // Order ID
+    // 1. Order ID
     tr.append(makeCell(order.id));
 
-    // Order item image only
+    const orderItems =
+      orderItemsByOrder[String(order.id)] || [];
+
+    // 2. Item Image column
     const imageCell = document.createElement("td");
-    const orderItems = orderItemsByOrder[String(order.id)] || [];
 
     orderItems.forEach(item => {
       if (item.image_url) {
         const img = document.createElement("img");
         img.src = item.image_url;
-        img.alt = "Ordered product";
-        img.style.width = "70px";
-        img.style.height = "70px";
+        img.alt = "Ordered item";
+        img.style.width = "55px";
+        img.style.height = "55px";
         img.style.objectFit = "cover";
-        img.style.borderRadius = "8px";
+        img.style.borderRadius = "6px";
         img.style.margin = "3px";
-        img.loading = "lazy";
         imageCell.appendChild(img);
       }
     });
 
-    tr.appendChild(imageCell);
- 
-    // 2(. Customer name
-    tr.append(makeCell(order.customer_name || "Name not saved"));
+    if (!imageCell.hasChildNodes()) {
+      imageCell.textContent = "No image";
+    }
 
+    tr.appendChild(imageCell);
+
+    // 3. Item Name column
+    const nameCell = document.createElement("td");
+
+    if (orderItems.length > 0) {
+      orderItems.forEach(item => {
+        const name = document.createElement("div");
+        name.textContent = item.name || "Unnamed item";
+        name.style.marginBottom = "8px";
+        nameCell.appendChild(name);
+      });
+    } else {
+      nameCell.textContent = "No items found";
+    }
+
+    tr.appendChild(nameCell);
+
+    // 4. Customer column — only once
+    tr.append(
+      makeCell(order.customer_name || "Name not saved")
+    );
+
+    
     // 3. Contact details
     const contact = [
       order.customer_email,
