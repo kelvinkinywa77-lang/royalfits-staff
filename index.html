@@ -35,128 +35,150 @@
       <p id="loginMessage" class="message" role="status"></p>
     </section>
 
-    <section id="dashboardPanel" hidden>
-      <section class="product-admin">
-  <h2>Add New Product</h2>
-  <p>Add a product to the ROYAL FITS online shop.</p>
-
-  <form id="addProductForm">
-    <label for="productName">Product name</label>
-    <input id="productName" type="text" required
-           placeholder="e.g. Ladies Sneakers">
-
-    <label for="productCategory">Category</label>
-    <select id="productCategory" required>
-      <option value="Women">Women</option>
-      <option value="Men">Men</option>
-      <option value="Shoes">Shoes</option>
-      <option value="Accessories">Accessories</option>
-    </select>
-
-    <label for="productPrice">Price (KSh)</label>
-    <input id="productPrice" type="number" min="0.01"
-           step="0.01" required>
-
-    <label for="productOldPrice">Old price (optional)</label>
-    <input id="productOldPrice" type="number" min="0"
-           step="0.01">
-
-    <label for="productImage">Product image URL</label>
     
-<label for="productImage">Choose product image from phone or laptop</label>
-<input
-  id="productImage"
-  type="file"
-  accept="image/*"
-  required
->
+<section id="dashboardPanel" hidden>
 
-<img
-  id="productPreview"
-  alt="Product preview"
-  hidden
-  style="width:150px;height:150px;object-fit:contain;margin-top:10px;"
->
-    <label for="productColor">Colour</label>
-    <input id="productColor" type="text" placeholder="Black">
+  <!-- MAIN DASHBOARD MENU -->
+  <section id="homePanel" class="panel">
+    <h2>Staff Dashboard</h2>
+    <p id="staffInfo">Checking account permissions...</p>
 
-    <label for="productStock">Stock quantity</label>
-    <input id="productStock" type="number" min="0"
-           step="1" value="1" required>
+    <div class="dashboard-menu">
+      <button type="button" id="customerOrdersBtn" class="menu-btn">
+        🛍️ Customer Orders
+      </button>
 
-    <button type="submit" id="addProductBtn">
-      Add Product to Shop
+      <button type="button" id="addProductMenuBtn" class="menu-btn">
+        ➕ Add Product
+      </button>
+    </div>
+  </section>
+
+  <!-- ADD PRODUCT SECTION -->
+  <section id="productPanel" class="product-admin" hidden>
+    <button type="button" id="backFromProductBtn" class="secondary-btn">
+      ← Back to Dashboard
     </button>
 
-    <p id="productMessage" role="status"></p>
-  </form>
-</section>
-      <div class="welcome">
-        <div>
-          <h2>Staff Dashboard</h2>
-          <p id="staffInfo">Checking account permissions...</p>
-        </div>
-        <button id="refreshBtn" class="secondary-btn">Refresh orders</button>
-      </div>
+    <h2>Add New Product</h2>
+    <p>Add a product to the ROYAL FITS online shop.</p>
 
-      <p id="dashboardMessage" class="message" role="status"></p>
+    <form id="addProductForm">
+      <label for="productName">Product name</label>
+      <input id="productName" type="text" required
+             placeholder="e.g. Ladies Sneakers">
 
-      <div class="stats">
-        <article class="stat-card">
-          <span>Total orders</span>
-          <strong id="totalOrders">0</strong>
-        </article>
-        <article class="stat-card">
-          <span>Paid orders</span>
-          <strong id="paidOrders">0</strong>
-        </article>
-        <article class="stat-card">
-          <span>Awaiting payment</span>
-          <strong id="unpaidOrders">0</strong>
-        </article>
-        <article class="stat-card">
-          <span>Delivered</span>
-          <strong id="deliveredOrders">0</strong>
-        </article>
-      </div>
+      <label for="productCategory">Category</label>
+      <select id="productCategory" required>
+        <option value="Women">Women</option>
+        <option value="Men">Men</option>
+        <option value="Shoes">Shoes</option>
+        <option value="Accessories">Accessories</option>
+      </select>
 
-      <section class="panel">
+      <label for="productPrice">Price (KSh)</label>
+      <input id="productPrice" type="number" min="0.01"
+             step="0.01" required>
+
+      <label for="productOldPrice">Old price (optional)</label>
+      <input id="productOldPrice" type="number" min="0"
+             step="0.01">
+
+      <label for="productImage">
+        Choose product image from phone or laptop
+      </label>
+      <input id="productImage" type="file" accept="image/*" required>
+
+      <img id="productPreview" alt="Product preview" hidden
+           style="width:150px;height:150px;object-fit:contain;margin-top:10px;">
+
+      <label for="productColor">Colour</label>
+      <input id="productColor" type="text" placeholder="Black">
+
+      <label for="productStock">Stock quantity</label>
+      <input id="productStock" type="number" min="0"
+             step="1" value="1" required>
+
+      <button type="submit" id="addProductBtn">
+        Add Product to Shop
+      </button>
+
+      <p id="productMessage" role="status"></p>
+    </form>
+  </section>
+
+  <!-- CUSTOMER ORDERS SECTION -->
+  <section id="customerOrdersPanel" hidden>
+    <button type="button" id="backFromOrdersBtn" class="secondary-btn">
+      ← Back to Dashboard
+    </button>
+
+    <div class="welcome">
+      <div>
         <h2>Customer Orders</h2>
+        <p>View customer payments and manage deliveries.</p>
+      </div>
+      <button type="button" id="refreshBtn" class="secondary-btn">
+        Refresh orders
+      </button>
+    </div>
 
-        <input
-          id="searchInput"
-          type="search"
-          placeholder="Search by order ID or customer..."
-          aria-label="Search orders"
-        >
+    <p id="dashboardMessage" class="message" role="status"></p>
 
-        <div class="table-wrap">
-          <table>
-      
-<thead>
-  <tr>
-    <th>Order ID</th>
-<th>Item image </th>
-    <th>Item Name</th>
-    <th>Customer</th>
-    <th>Contact</th>
-    <th>Total</th>
-    <th>Payment</th>
-    <th>M-PESA Reference</th>
-    <th>Delivery</th>
-    <th>Update Delivery</th>
-  </tr>
-</thead>
-<tbody id="ordersBody">
-  <tr>
-    <td colspan="8">Sign in to view authorized orders.</td>
-  </tr>
-</tbody>
-          </table>
-        </div>
-      </section>
+    <div class="stats">
+      <article class="stat-card">
+        <span>Total orders</span>
+        <strong id="totalOrders">0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Paid orders</span>
+        <strong id="paidOrders">0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Awaiting payment</span>
+        <strong id="unpaidOrders">0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Delivered</span>
+        <strong id="deliveredOrders">0</strong>
+      </article>
+    </div>
+
+    <section class="panel">
+      <h2>Customer Orders Table</h2>
+
+      <input id="searchInput" type="search"
+             placeholder="Search by order ID or customer..."
+             aria-label="Search orders">
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Item Image</th>
+              <th>Item Name</th>
+              <th>Customer</th>
+              <th>Contact</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>M-PESA Reference</th>
+              <th>Delivery</th>
+              <th>Update Delivery</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody">
+            <tr>
+              <td colspan="10">Sign in to view authorized orders.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
-  </main>
+  </section>
+
+</section>
+ </main>.
 
   <footer>
     <p>© 2026 Royal Fits Boutique254. Staff access only.</p>
