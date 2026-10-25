@@ -62,9 +62,17 @@
            step="0.01">
 
     <label for="productImage">Product image URL</label>
-    <input id="productImage" type="url"
-           placeholder="https://example.com/product.jpg">
+    
+<label for="productImage">Choose product image</label>
+<input id="productImage"
+       type="file"
+       accept="image/*"
+       required>
 
+<img id="productPreview"
+     alt="Product preview"
+     hidden
+     style="width:150px;max-height:180px;object-fit:contain;">
     <label for="productColor">Colour</label>
     <input id="productColor" type="text" placeholder="Black">
 
