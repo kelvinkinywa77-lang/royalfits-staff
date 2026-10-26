@@ -27,7 +27,10 @@ let orderItemsByOrder = {};
 /* 2. GLOBAL ERROR MESSAGES */
 
 window.addEventListener("error", function (event) {
-  showMessage("loginMessage", "JavaScript error: " + event.message);
+  showMessage(
+    "loginMessage",
+    "JavaScript error: " + event.message
+  );
 });
 
 window.addEventListener("unhandledrejection", function (event) {
@@ -40,7 +43,10 @@ window.addEventListener("unhandledrejection", function (event) {
 
 function showMessage(elementId, message) {
   const element = $(elementId);
-  if (element) element.textContent = message;
+
+  if (element) {
+    element.textContent = message;
+  }
 }
 
 function safeText(value) {
@@ -50,7 +56,9 @@ function safeText(value) {
 function money(value) {
   const amount = Number(value);
 
-  if (!Number.isFinite(amount)) return safeText(value);
+  if (!Number.isFinite(amount)) {
+    return safeText(value);
+  }
 
   return new Intl.NumberFormat("en-KE", {
     style: "currency",
@@ -61,7 +69,9 @@ function money(value) {
 function statusClass(value) {
   const status = safeText(value).toLowerCase();
 
-  if (["paid", "successful", "delivered", "active"].includes(status)) {
+  if (
+    ["paid", "successful", "delivered", "active"].includes(status)
+  ) {
     return "paid";
   }
 
@@ -88,8 +98,10 @@ function makeCell(value) {
 
 function makeStatus(value) {
   const span = document.createElement("span");
+
   span.className = "status " + statusClass(value);
   span.textContent = safeText(value) || "Unknown";
+
   return span;
 }
 
@@ -125,7 +137,38 @@ async function checkStaffRole(user) {
     "Signed in as " + user.email + " (" + currentRole + ")"
   );
 
-  if ($("logoutBtn")) $("logoutBtn").hidden = false;
+  if ($("logoutBtn")) {
+    $("logoutBtn").hidden = false;
+  }
+
+  /* Hide Users navigation from non-admin staff. */
+  if ($("usersBtn")) {
+    $("usersBtn").hidden = currentRole !== "admin";
+  }
+
+  /* Hide Users panel unless the current user is an admin. */
+  if ($("usersPanel") && currentRole !== "admin") {
+    $("usersPanel").hidden = true;
+  }
+
+  /* Only admins can remove products. */
+  if ($("viewProductsMenuBtn")) {
+    $("viewProductsMenuBtn").hidden = false;
+  }
+}
+
+/* Admin-only permission guard. */
+function requireAdmin(messageElementId = "usersMessage") {
+  if (currentRole !== "admin") {
+    showMessage(
+      messageElementId,
+      "Access denied. Only an administrator can perform this action."
+    );
+
+    return false;
+  }
+
+  return true;
 }
 
 /* =====================================================
@@ -134,7 +177,9 @@ async function checkStaffRole(user) {
 
 async function loadOrders() {
   if (!currentRole) {
-    throw new Error("Staff permissions have not been verified.");
+    throw new Error(
+      "Staff permissions have not been verified."
+    );
   }
 
   showMessage("dashboardMessage", "Loading orders...");
@@ -146,7 +191,9 @@ async function loadOrders() {
     .limit(100);
 
   if (error) {
-    throw new Error("Could not load orders: " + error.message);
+    throw new Error(
+      "Could not load orders: " + error.message
+    );
   }
 
   orders = data || [];
@@ -156,7 +203,10 @@ async function loadOrders() {
   if (orders.length > 0) {
     const orderIds = orders.map(order => order.id);
 
-    const { data: items, error: itemsError } = await db
+    const {
+      data: items,
+      error: itemsError
+    } = await db
       .from("order_items")
       .select("*")
       .in("order_id", orderIds);
@@ -165,9 +215,12 @@ async function loadOrders() {
       console.error("Order items error:", itemsError);
 
       orders.forEach(order => {
-        orderItemNames[String(order.id)] = "Items unavailable";
-        orderItemsByOrder[String(order.id)] = [];
+        const key = String(order.id);
+
+        orderItemNames[key] = "Items unavailable";
+        orderItemsByOrder[key] = [];
       });
+
     } else {
       const productIds = [
         ...new Set(
@@ -181,13 +234,20 @@ async function loadOrders() {
       const productsById = {};
 
       if (productIds.length > 0) {
-        const { data: products, error: productError } = await db
+        const {
+          data: products,
+          error: productError
+        } = await db
           .from("products")
           .select("id, name, image_url")
           .in("id", productIds);
 
         if (productError) {
-          console.error("Product details error:", productError);
+          console.error(
+            "Product details error:",
+            productError
+          );
+
         } else {
           (products || []).forEach(product => {
             productsById[String(product.id)] = product;
@@ -197,6 +257,7 @@ async function loadOrders() {
 
       (items || []).forEach(item => {
         const key = String(item.order_id);
+
         const product =
           productsById[String(item.product_id)] || {};
 
@@ -225,12 +286,16 @@ async function loadOrders() {
 
       orders.forEach(order => {
         const key = String(order.id);
-        const itemsForOrder = orderItemsByOrder[key] || [];
+
+        const itemsForOrder =
+          orderItemsByOrder[key] || [];
 
         orderItemNames[key] = itemsForOrder.length
           ? itemsForOrder.map(item =>
               item.name +
-              (item.quantity > 1 ? " × " + item.quantity : "")
+              (item.quantity > 1
+                ? " × " + item.quantity
+                : "")
             ).join(", ")
           : "No items found";
       });
@@ -241,7 +306,9 @@ async function loadOrders() {
 
   showMessage(
     "dashboardMessage",
-    "Orders refreshed. " + orders.length + " order(s) loaded."
+    "Orders refreshed. " +
+      orders.length +
+      " order(s) loaded."
   );
 }
 
@@ -301,16 +368,20 @@ function renderOrders() {
   if (filtered.length === 0) {
     const tr = document.createElement("tr");
     const td = makeCell("No matching orders found.");
+
     td.colSpan = 10;
     tr.appendChild(td);
     tbody.appendChild(tr);
+
     return;
   }
 
   filtered.forEach(order => {
     const tr = document.createElement("tr");
-    const items = orderItemsByOrder[String(order.id)] || [];
+    const items =
+      orderItemsByOrder[String(order.id)] || [];
 
+    /* Order ID */
     tr.appendChild(makeCell(order.id));
 
     /* Item images */
@@ -320,9 +391,11 @@ function renderOrders() {
       if (!item.image_url) return;
 
       const img = document.createElement("img");
+
       img.src = item.image_url;
       img.alt = item.name || "Ordered product";
       img.loading = "lazy";
+
       img.style.width = "55px";
       img.style.height = "55px";
       img.style.objectFit = "cover";
@@ -347,36 +420,61 @@ function renderOrders() {
 
         itemName.textContent =
           item.name +
-          (item.quantity > 1 ? " × " + item.quantity : "");
+          (item.quantity > 1
+            ? " × " + item.quantity
+            : "");
 
         itemName.style.marginBottom = "6px";
+
         nameCell.appendChild(itemName);
       });
+
     } else {
       nameCell.textContent =
-        orderItemNames[String(order.id)] || "No items found";
+        orderItemNames[String(order.id)] ||
+        "No items found";
     }
 
     tr.appendChild(nameCell);
 
+    /* Customer name */
     tr.appendChild(
       makeCell(order.customer_name || "Name not saved")
     );
 
+    /* Customer contact */
     const contact = [
       order.customer_email,
       order.customer_phone || order.mpesa_phone
     ].filter(Boolean).join(" / ");
 
-    tr.appendChild(makeCell(contact || "Contact not saved"));
-    tr.appendChild(makeCell(money(order.total_amount)));
-    tr.appendChild(makeStatus(order.payment_status || "Pending"));
     tr.appendChild(
-      makeCell(order.mpesa_receipt_number || "Not paid yet")
+      makeCell(contact || "Contact not saved")
     );
-    tr.appendChild(makeStatus(order.delivery_status || "pending"));
 
-    /* Delivery update */
+    /* Order total */
+    tr.appendChild(
+      makeCell(money(order.total_amount))
+    );
+
+    /* Payment status */
+    tr.appendChild(
+      makeStatus(order.payment_status || "Pending")
+    );
+
+    /* M-Pesa receipt */
+    tr.appendChild(
+      makeCell(
+        order.mpesa_receipt_number || "Not paid yet"
+      )
+    );
+
+    /* Delivery status */
+    tr.appendChild(
+      makeStatus(order.delivery_status || "pending")
+    );
+
+    /* Delivery update controls */
     const actionCell = document.createElement("td");
     const select = document.createElement("select");
 
@@ -395,9 +493,12 @@ function renderOrders() {
 
     statuses.forEach(status => {
       const option = document.createElement("option");
+
       option.value = status;
       option.textContent =
-        status.charAt(0).toUpperCase() + status.slice(1);
+        status.charAt(0).toUpperCase() +
+        status.slice(1);
+
       select.appendChild(option);
     });
 
@@ -409,6 +510,7 @@ function renderOrders() {
       : "pending";
 
     const saveButton = document.createElement("button");
+
     saveButton.type = "button";
     saveButton.textContent = "Save";
     saveButton.className = "secondary-btn";
@@ -419,10 +521,16 @@ function renderOrders() {
       if (!confirm(
         "Update delivery status for this order to " +
         newStatus + "?"
-      )) return;
+      )) {
+        return;
+      }
 
       saveButton.disabled = true;
-      showMessage("dashboardMessage", "Saving delivery update...");
+
+      showMessage(
+        "dashboardMessage",
+        "Saving delivery update..."
+      );
 
       try {
         const { error } = await db
@@ -433,14 +541,19 @@ function renderOrders() {
         if (error) throw error;
 
         order.delivery_status = newStatus;
+
         renderOrders();
 
         showMessage(
           "dashboardMessage",
           "Delivery status saved successfully."
         );
+
       } catch (error) {
-        console.error("Delivery update error:", error);
+        console.error(
+          "Delivery update error:",
+          error
+        );
 
         showMessage(
           "dashboardMessage",
@@ -452,7 +565,9 @@ function renderOrders() {
     });
 
     actionCell.appendChild(select);
-    actionCell.appendChild(document.createElement("br"));
+    actionCell.appendChild(
+      document.createElement("br")
+    );
     actionCell.appendChild(saveButton);
 
     tr.appendChild(actionCell);
@@ -465,6 +580,16 @@ function renderOrders() {
 ===================================================== */
 
 function showStaffSection(section) {
+  /* Prevent non-admins from opening Users. */
+  if (section === "users" && currentRole !== "admin") {
+    showMessage(
+      "usersMessage",
+      "Access denied. Only an administrator can view registered users."
+    );
+
+    section = "home";
+  }
+
   if ($("homePanel")) {
     $("homePanel").hidden = section !== "home";
   }
@@ -482,7 +607,8 @@ function showStaffSection(section) {
   }
 
   if ($("usersPanel")) {
-    $("usersPanel").hidden = section !== "users";
+    $("usersPanel").hidden =
+      section !== "users" || currentRole !== "admin";
   }
 }
 
@@ -509,7 +635,7 @@ $("backFromOrdersBtn")?.addEventListener("click", () => {
 });
 
 /* =====================================================
-   7. REGISTERED USERS
+   7. REGISTERED USERS — ADMIN ONLY
 ===================================================== */
 
 const usersBtn = $("usersBtn");
@@ -517,11 +643,8 @@ const usersTableBody = $("usersTableBody");
 const refreshUsersBtn = $("refreshUsersBtn");
 
 async function loadRegisteredUsers() {
-  if (!currentRole) {
-    showMessage(
-      "usersMessage",
-      "You must sign in with an authorized staff account."
-    );
+  if (!requireAdmin("usersMessage")) {
+    showStaffSection("home");
     return;
   }
 
@@ -530,13 +653,18 @@ async function loadRegisteredUsers() {
   showMessage("usersMessage", "Loading registered users...");
   usersTableBody.replaceChildren();
 
-  if (refreshUsersBtn) refreshUsersBtn.disabled = true;
+  if (refreshUsersBtn) {
+    refreshUsersBtn.disabled = true;
+  }
 
   try {
-    const { data: sessionData, error: sessionError } =
-      await db.auth.getSession();
+    const {
+      data: sessionData,
+      error: sessionError
+    } = await db.auth.getSession();
 
     if (sessionError) throw sessionError;
+
     if (!sessionData.session) {
       throw new Error("Please log in first.");
     }
@@ -546,9 +674,15 @@ async function loadRegisteredUsers() {
     let hasMore = true;
 
     while (hasMore) {
+      /*
+       * The staff-users Edge Function MUST independently
+       * verify that the caller is an admin.
+       */
       const { data, error } = await db.functions.invoke(
         "staff-users",
-        { body: { page } }
+        {
+          body: { page }
+        }
       );
 
       if (error) throw error;
@@ -571,9 +705,11 @@ async function loadRegisteredUsers() {
     if (allUsers.length === 0) {
       const row = document.createElement("tr");
       const cell = makeCell("No registered users found.");
+
       cell.colSpan = 4;
       row.appendChild(cell);
       usersTableBody.appendChild(row);
+
     } else {
       allUsers.forEach(user => {
         const row = document.createElement("tr");
@@ -603,6 +739,7 @@ async function loadRegisteredUsers() {
 
     const row = document.createElement("tr");
     const cell = makeCell("Unable to load users.");
+
     cell.colSpan = 4;
     row.appendChild(cell);
     usersTableBody.appendChild(row);
@@ -610,16 +747,24 @@ async function loadRegisteredUsers() {
     showMessage("usersMessage", error.message);
 
   } finally {
-    if (refreshUsersBtn) refreshUsersBtn.disabled = false;
+    if (refreshUsersBtn) {
+      refreshUsersBtn.disabled = false;
+    }
   }
 }
 
 usersBtn?.addEventListener("click", async () => {
+  if (!requireAdmin("usersMessage")) return;
+
   showStaffSection("users");
   await loadRegisteredUsers();
 });
 
-refreshUsersBtn?.addEventListener("click", loadRegisteredUsers);
+refreshUsersBtn?.addEventListener("click", async () => {
+  if (!requireAdmin("usersMessage")) return;
+
+  await loadRegisteredUsers();
+});
 
 $("backFromUsersBtn")?.addEventListener("click", () => {
   showStaffSection("home");
@@ -647,18 +792,23 @@ async function loadStaffProducts() {
 
   const loadingRow = document.createElement("tr");
   const loadingCell = makeCell("Loading products...");
+
   loadingCell.colSpan = 7;
   loadingRow.appendChild(loadingCell);
   tbody.appendChild(loadingRow);
 
-  if (refreshBtn) refreshBtn.disabled = true;
+  if (refreshBtn) {
+    refreshBtn.disabled = true;
+  }
 
   showMessage("productsMessage", "Loading products...");
 
   try {
     const { data: products, error } = await db
       .from("products")
-      .select("id, name, category, price, stock, is_active, image_url")
+      .select(
+        "id, name, category, price, stock, is_active, image_url"
+      )
       .order("id", { ascending: false });
 
     if (error) throw error;
@@ -668,6 +818,7 @@ async function loadStaffProducts() {
     if (!products || products.length === 0) {
       const row = document.createElement("tr");
       const cell = makeCell("No products found.");
+
       cell.colSpan = 7;
       row.appendChild(cell);
       tbody.appendChild(row);
@@ -684,9 +835,11 @@ async function loadStaffProducts() {
 
       if (product.image_url) {
         const img = document.createElement("img");
+
         img.src = product.image_url;
         img.alt = product.name || "Product image";
         img.loading = "lazy";
+
         img.style.width = "65px";
         img.style.height = "65px";
         img.style.objectFit = "contain";
@@ -698,6 +851,7 @@ async function loadStaffProducts() {
         };
 
         imageCell.appendChild(img);
+
       } else {
         imageCell.textContent = "No image";
       }
@@ -735,59 +889,130 @@ async function loadStaffProducts() {
         removeBtn.className = "secondary-btn";
 
         removeBtn.addEventListener("click", async () => {
-          if (currentRole !== "admin") {
-            showMessage(
-              "productsMessage",
-              "Only administrators can remove products."
-            );
-            return;
-          }
+          if (!requireAdmin("productsMessage")) return;
 
           const confirmed = confirm(
             'Remove "' + product.name +
-            '" from the online shop? This deactivates the product ' +
-            "without permanently deleting its record."
+            '" from the online shop? This will deactivate it ' +
+            "without permanently deleting the database record."
           );
 
           if (!confirmed) return;
 
           removeBtn.disabled = true;
-          showMessage("productsMessage", "Removing product...");
+
+          showMessage(
+            "productsMessage",
+            "Checking admin permissions..."
+          );
 
           try {
-            const { data: updatedRows, error: updateError } =
-              await db
-                .from("products")
-                .update({ is_active: false })
-                .eq("id", product.id)
-                .eq("is_active", true)
-                .select("id");
+            /*
+             * Check the actual signed-in session and role.
+             * This is diagnostic; the database RLS policy
+             * must still enforce authorization.
+             */
+            const {
+              data: sessionData,
+              error: sessionError
+            } = await db.auth.getSession();
 
-            if (updateError) {
-  console.error("Supabase product update details:", {
-    message: updateError.message,
-    code: updateError.code,
-    details: updateError.details,
-    hint: updateError.hint
-  });
+            if (sessionError) throw sessionError;
 
-  throw new Error(
-    updateError.message +
-    (updateError.code ? " (Code: " + updateError.code + ")" : "") +
-    (updateError.details ? " Details: " + updateError.details : "") +
-    (updateError.hint ? " Hint: " + updateError.hint : "")
-  );
-}
+            const userId = sessionData?.session?.user?.id;
 
-            if (!updatedRows || updatedRows.length === 0) {
+            console.log("Logged-in user ID:", userId);
+
+            if (!userId) {
               throw new Error(
-                "No product was updated. Check your Supabase permissions."
+                "No active Supabase session. Sign in again."
+              );
+            }
+
+            const {
+              data: roleData,
+              error: roleError
+            } = await db
+              .from("staff_roles")
+              .select("user_id, role")
+              .eq("user_id", userId);
+
+            console.log("Admin role lookup:", roleData);
+            console.log("Admin role lookup error:", roleError);
+
+            if (roleError) {
+              throw new Error(
+                "Could not verify your admin role: " +
+                roleError.message
+              );
+            }
+
+            const isAdmin = (roleData || []).some(
+              roleRow =>
+                roleRow.user_id === userId &&
+                safeText(roleRow.role).toLowerCase() === "admin"
+            );
+
+            if (!isAdmin) {
+              throw new Error(
+                "Your current login is not recognized as an admin. " +
+                "Check the user ID and role in staff_roles."
               );
             }
 
             showMessage(
               "productsMessage",
-              "Product removed from the shop."
+              "Admin verified. Removing product..."
+            );
+
+            /*
+             * Soft removal: keep the record and its order history.
+             */
+            const {
+              data: updatedRows,
+              error: updateError
+            } = await db
+              .from("products")
+              .update({ is_active: false })
+              .eq("id", product.id)
+              .eq("is_active", true)
+              .select("id");
+
+            if (updateError) {
+              console.error(
+                "Supabase product update details:",
+                {
+                  message: updateError.message,
+                  code: updateError.code,
+                  details: updateError.details,
+                  hint: updateError.hint
+                }
+              );
+
+              throw new Error(
+                updateError.message +
+                (updateError.code
+                  ? " (Code: " + updateError.code + ")"
+                  : "") +
+                (updateError.details
+                  ? " Details: " + updateError.details
+                  : "") +
+                (updateError.hint
+                  ? " Hint: " + updateError.hint
+                  : "")
+              );
+            }
+
+            if (!updatedRows || updatedRows.length === 0) {
+              throw new Error(
+                "No product was updated. Check the product's " +
+                "current status and Supabase UPDATE/SELECT policies."
+              );
+            }
+
+            showMessage(
+              "productsMessage",
+              "Product removed from the online shop."
             );
 
             await loadStaffProducts();
@@ -823,6 +1048,7 @@ async function loadStaffProducts() {
 
     const row = document.createElement("tr");
     const cell = makeCell("Unable to load products.");
+
     cell.colSpan = 7;
     row.appendChild(cell);
     tbody.appendChild(row);
@@ -833,38 +1059,59 @@ async function loadStaffProducts() {
     );
 
   } finally {
-    if (refreshBtn) refreshBtn.disabled = false;
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+    }
   }
 }
 
 /* Open products panel */
-$("viewProductsMenuBtn")?.addEventListener("click", async () => {
-  showStaffSection("viewProducts");
-  await loadStaffProducts();
-});
+$("viewProductsMenuBtn")?.addEventListener(
+  "click",
+  async () => {
+    showStaffSection("viewProducts");
+    await loadStaffProducts();
+  }
+);
 
 /* Refresh products */
-$("refreshProductsBtn")?.addEventListener("click", async () => {
-  await loadStaffProducts();
-});
+$("refreshProductsBtn")?.addEventListener(
+  "click",
+  async () => {
+    await loadStaffProducts();
+  }
+);
 
 /* Back from products */
-$("backFromViewProductsBtn")?.addEventListener("click", () => {
-  showStaffSection("home");
-});
+$("backFromViewProductsBtn")?.addEventListener(
+  "click",
+  () => {
+    showStaffSection("home");
+  }
+);
 
 /* =====================================================
    9. LOGIN AND SESSION MANAGEMENT
 ===================================================== */
 
 async function showDashboard(user) {
-  if ($("loginPanel")) $("loginPanel").hidden = true;
-  if ($("dashboardPanel")) $("dashboardPanel").hidden = false;
-  if ($("logoutBtn")) $("logoutBtn").hidden = false;
+  if ($("loginPanel")) {
+    $("loginPanel").hidden = true;
+  }
+
+  if ($("dashboardPanel")) {
+    $("dashboardPanel").hidden = false;
+  }
+
+  if ($("logoutBtn")) {
+    $("logoutBtn").hidden = false;
+  }
 
   try {
     await checkStaffRole(user);
+
     showStaffSection("home");
+
     await loadOrders();
 
   } catch (error) {
@@ -877,9 +1124,21 @@ async function showDashboard(user) {
       error.message || "Could not open staff dashboard."
     );
 
-    if ($("dashboardPanel")) $("dashboardPanel").hidden = true;
-    if ($("loginPanel")) $("loginPanel").hidden = false;
-    if ($("logoutBtn")) $("logoutBtn").hidden = true;
+    if ($("dashboardPanel")) {
+      $("dashboardPanel").hidden = true;
+    }
+
+    if ($("loginPanel")) {
+      $("loginPanel").hidden = false;
+    }
+
+    if ($("logoutBtn")) {
+      $("logoutBtn").hidden = true;
+    }
+
+    if ($("usersBtn")) {
+      $("usersBtn").hidden = true;
+    }
   }
 }
 
@@ -893,10 +1152,25 @@ async function checkSession() {
 
   if (data.session) {
     await showDashboard(data.session.user);
+
   } else {
-    if ($("loginPanel")) $("loginPanel").hidden = false;
-    if ($("dashboardPanel")) $("dashboardPanel").hidden = true;
-    if ($("logoutBtn")) $("logoutBtn").hidden = true;
+    currentRole = null;
+
+    if ($("loginPanel")) {
+      $("loginPanel").hidden = false;
+    }
+
+    if ($("dashboardPanel")) {
+      $("dashboardPanel").hidden = true;
+    }
+
+    if ($("logoutBtn")) {
+      $("logoutBtn").hidden = true;
+    }
+
+    if ($("usersBtn")) {
+      $("usersBtn").hidden = true;
+    }
   }
 }
 
@@ -908,12 +1182,18 @@ $("loginForm")?.addEventListener("submit", async event => {
   const password = $("loginPassword")?.value;
 
   if (!email || !password) {
-    showMessage("loginMessage", "Enter your email and password.");
+    showMessage(
+      "loginMessage",
+      "Enter your email and password."
+    );
     return;
   }
 
   const loginButton = $("loginSubmit");
-  if (loginButton) loginButton.disabled = true;
+
+  if (loginButton) {
+    loginButton.disabled = true;
+  }
 
   showMessage("loginMessage", "Signing in...");
 
@@ -931,10 +1211,16 @@ $("loginForm")?.addEventListener("submit", async event => {
 
   } catch (error) {
     console.error("Login error:", error);
-    showMessage("loginMessage", "Login failed: " + error.message);
+
+    showMessage(
+      "loginMessage",
+      "Login failed: " + error.message
+    );
 
   } finally {
-    if (loginButton) loginButton.disabled = false;
+    if (loginButton) {
+      loginButton.disabled = false;
+    }
   }
 });
 
@@ -952,9 +1238,25 @@ $("logoutBtn")?.addEventListener("click", async () => {
   orderItemNames = {};
   orderItemsByOrder = {};
 
-  if ($("dashboardPanel")) $("dashboardPanel").hidden = true;
-  if ($("loginPanel")) $("loginPanel").hidden = false;
-  if ($("logoutBtn")) $("logoutBtn").hidden = true;
+  if ($("dashboardPanel")) {
+    $("dashboardPanel").hidden = true;
+  }
+
+  if ($("loginPanel")) {
+    $("loginPanel").hidden = false;
+  }
+
+  if ($("logoutBtn")) {
+    $("logoutBtn").hidden = true;
+  }
+
+  if ($("usersBtn")) {
+    $("usersBtn").hidden = true;
+  }
+
+  if ($("usersPanel")) {
+    $("usersPanel").hidden = true;
+  }
 
   showMessage("loginMessage", "You have signed out.");
 });
@@ -963,6 +1265,7 @@ $("logoutBtn")?.addEventListener("click", async () => {
 $("refreshBtn")?.addEventListener("click", async () => {
   try {
     await loadOrders();
+
   } catch (error) {
     showMessage("dashboardMessage", error.message);
   }
@@ -972,13 +1275,29 @@ $("refreshBtn")?.addEventListener("click", async () => {
 $("searchInput")?.addEventListener("input", renderOrders);
 
 /* Authentication changes */
-db.auth.onAuthStateChange((event) => {
+db.auth.onAuthStateChange(event => {
   if (event === "SIGNED_OUT") {
     currentRole = null;
 
-    if ($("dashboardPanel")) $("dashboardPanel").hidden = true;
-    if ($("loginPanel")) $("loginPanel").hidden = false;
-    if ($("logoutBtn")) $("logoutBtn").hidden = true;
+    if ($("dashboardPanel")) {
+      $("dashboardPanel").hidden = true;
+    }
+
+    if ($("loginPanel")) {
+      $("loginPanel").hidden = false;
+    }
+
+    if ($("logoutBtn")) {
+      $("logoutBtn").hidden = true;
+    }
+
+    if ($("usersBtn")) {
+      $("usersBtn").hidden = true;
+    }
+
+    if ($("usersPanel")) {
+      $("usersPanel").hidden = true;
+    }
   }
 });
 
@@ -1000,7 +1319,11 @@ if (productImageInput && productPreview) {
     }
 
     if (!file.type.startsWith("image/")) {
-      showMessage("productMessage", "Choose an image file.");
+      showMessage(
+        "productMessage",
+        "Choose an image file."
+      );
+
       this.value = "";
       productPreview.hidden = true;
       return;
@@ -1020,7 +1343,10 @@ if (productImageInput && productPreview) {
     productPreview.src = URL.createObjectURL(file);
     productPreview.hidden = false;
 
-    showMessage("productMessage", "Image ready to upload.");
+    showMessage(
+      "productMessage",
+      "Image ready to upload."
+    );
   });
 }
 
@@ -1028,129 +1354,157 @@ if (productImageInput && productPreview) {
    11. ADD PRODUCT AND UPLOAD IMAGE
 ===================================================== */
 
-$("addProductForm")?.addEventListener("submit", async event => {
-  event.preventDefault();
+$("addProductForm")?.addEventListener(
+  "submit",
+  async event => {
+    event.preventDefault();
 
-  if (!currentRole) {
-    showMessage(
-      "productMessage",
-      "Please sign in with an authorized staff account."
-    );
-    return;
-  }
-
-  const name = $("productName")?.value.trim();
-  const category = $("productCategory")?.value;
-  const price = Number($("productPrice")?.value);
-  const oldPriceValue = $("productOldPrice")?.value;
-  const color = $("productColor")?.value.trim() || "";
-  const stock = Number($("productStock")?.value || 0);
-  const file = productImageInput?.files?.[0];
-
-  if (!name || !category || !Number.isFinite(price) || price <= 0) {
-    showMessage(
-      "productMessage",
-      "Enter a product name, category and valid price."
-    );
-    return;
-  }
-
-  if (!Number.isInteger(stock) || stock < 0) {
-    showMessage("productMessage", "Enter a valid stock quantity.");
-    return;
-  }
-
-  if (!file) {
-    showMessage("productMessage", "Choose a product image.");
-    return;
-  }
-
-  if (!file.type.startsWith("image/")) {
-    showMessage("productMessage", "Choose a valid image file.");
-    return;
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    showMessage(
-      "productMessage",
-      "Image is too large. Maximum size is 5 MB."
-    );
-    return;
-  }
-
-  const submitButton = $("addProductBtn");
-  if (submitButton) submitButton.disabled = true;
-
-  showMessage("productMessage", "Uploading image and adding product...");
-
-  let uploadedFilePath = null;
-
-  try {
-    const safeFileName = file.name.replace(
-      /[^a-zA-Z0-9._-]/g,
-      "_"
-    );
-
-    const filePath = Date.now() + "_" + safeFileName;
-
-    const { error: uploadError } = await db.storage
-      .from("product-images")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false
-      });
-
-    if (uploadError) {
-      throw new Error("Image upload failed: " + uploadError.message);
+    if (!currentRole) {
+      showMessage(
+        "productMessage",
+        "Please sign in with an authorized staff account."
+      );
+      return;
     }
 
-    uploadedFilePath = filePath;
+    const name = $("productName")?.value.trim();
+    const category = $("productCategory")?.value;
+    const price = Number($("productPrice")?.value);
+    const oldPriceValue = $("productOldPrice")?.value;
+    const color = $("productColor")?.value.trim() || "";
+    const stock = Number($("productStock")?.value || 0);
+    const file = productImageInput?.files?.[0];
 
-    const { data: publicData } = db.storage
-      .from("product-images")
-      .getPublicUrl(filePath);
-
-    const product = {
-      name,
-      category,
-      price,
-      old_price:
-        oldPriceValue !== "" && oldPriceValue != null
-          ? Number(oldPriceValue)
-          : null,
-      image_url: publicData.publicUrl,
-      color,
-      stock,
-      is_active: true
-    };
-
-    const { error: insertError } = await db
-      .from("products")
-      .insert(product);
-
-    if (insertError) throw insertError;
-
-    $("addProductForm").reset();
-
-    if (productPreview) {
-      productPreview.hidden = true;
-      productPreview.removeAttribute("src");
+    if (
+      !name ||
+      !category ||
+      !Number.isFinite(price) ||
+      price <= 0
+    ) {
+      showMessage(
+        "productMessage",
+        "Enter a product name, category and valid price."
+      );
+      return;
     }
 
-    showMessage("productMessage", "Product added successfully!");
+    if (!Number.isInteger(stock) || stock < 0) {
+      showMessage(
+        "productMessage",
+        "Enter a valid stock quantity."
+      );
+      return;
+    }
 
-  } catch (error) {
-    console.error("Add product error:", error);
+    if (!file) {
+      showMessage(
+        "productMessage",
+        "Choose a product image."
+      );
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      showMessage(
+        "productMessage",
+        "Choose a valid image file."
+      );
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showMessage(
+        "productMessage",
+        "Image is too large. Maximum size is 5 MB."
+      );
+      return;
+    }
+
+    const submitButton = $("addProductBtn");
+
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
 
     showMessage(
       "productMessage",
-      error.message || "Could not add product."
+      "Uploading image and adding product..."
     );
 
-  } finally {
-    if (submitButton) submitButton.disabled = false;
+    try {
+      const safeFileName = file.name.replace(
+        /[^a-zA-Z0-9._-]/g,
+        "_"
+      );
+
+      const filePath = Date.now() + "_" + safeFileName;
+
+      const { error: uploadError } = await db.storage
+        .from("product-images")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false
+        });
+
+      if (uploadError) {
+        throw new Error(
+          "Image upload failed: " + uploadError.message
+        );
+      }
+
+      const { data: publicData } = db.storage
+        .from("product-images")
+        .getPublicUrl(filePath);
+
+      const product = {
+        name,
+        category,
+        price,
+
+        old_price:
+          oldPriceValue !== "" && oldPriceValue != null
+            ? Number(oldPriceValue)
+            : null,
+
+        image_url: publicData.publicUrl,
+        color,
+        stock,
+        is_active: true
+      };
+
+      const { error: insertError } = await db
+        .from("products")
+        .insert(product);
+
+      if (insertError) throw insertError;
+
+      $("addProductForm").reset();
+
+      if (productPreview) {
+        productPreview.hidden = true;
+        productPreview.removeAttribute("src");
+      }
+
+      showMessage(
+        "productMessage",
+        "Product added successfully!"
+      );
+
+    } catch (error) {
+      console.error("Add product error:", error);
+
+      showMessage(
+        "productMessage",
+        error.message || "Could not add product."
+      );
+
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
+    }
   }
-});
+);
 
 /* =====================================================
    12. START DASHBOARD
