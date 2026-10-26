@@ -2,6 +2,7 @@
 /* =====================================================
    ROYAL FITS BOUTIQUE254
    COMPLETE STAFF DASHBOARD
+   Products: Add, Edit Name, Edit Price, Edit Stock, Remove
 ===================================================== */
 
 /* 1. SUPABASE CONNECTION */
@@ -24,7 +25,9 @@ let orders = [];
 let orderItemNames = {};
 let orderItemsByOrder = {};
 
-/* 2. GLOBAL ERROR MESSAGES */
+/* =====================================================
+   2. GENERAL HELPERS AND ERROR MESSAGES
+===================================================== */
 
 window.addEventListener("error", function (event) {
   showMessage(
@@ -141,23 +144,20 @@ async function checkStaffRole(user) {
     $("logoutBtn").hidden = false;
   }
 
-  /* Hide Users navigation from non-admin staff. */
+  /* Users are admin-only. */
   if ($("usersBtn")) {
     $("usersBtn").hidden = currentRole !== "admin";
   }
 
-  /* Hide Users panel unless the current user is an admin. */
   if ($("usersPanel") && currentRole !== "admin") {
     $("usersPanel").hidden = true;
   }
 
-  /* Only admins can remove products. */
   if ($("viewProductsMenuBtn")) {
     $("viewProductsMenuBtn").hidden = false;
   }
 }
 
-/* Admin-only permission guard. */
 function requireAdmin(messageElementId = "usersMessage") {
   if (currentRole !== "admin") {
     showMessage(
@@ -169,6 +169,34 @@ function requireAdmin(messageElementId = "usersMessage") {
   }
 
   return true;
+}
+
+/* Recheck the active user's admin role before sensitive changes. */
+async function verifyAdminSession() {
+  const { data: sessionData, error: sessionError } =
+    await db.auth.getSession();
+
+  if (sessionError) throw sessionError;
+
+  const userId = sessionData?.session?.user?.id;
+
+  if (!userId) {
+    throw new Error("Your session has expired. Please sign in again.");
+  }
+
+  const { data: roleData, error: roleError } = await db
+    .from("staff_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (roleError) throw roleError;
+
+  if (safeText(roleData?.role).toLowerCase() !== "admin") {
+    throw new Error("Only an administrator can perform this action.");
+  }
+
+  return userId;
 }
 
 /* =====================================================
@@ -191,9 +219,7 @@ async function loadOrders() {
     .limit(100);
 
   if (error) {
-    throw new Error(
-      "Could not load orders: " + error.message
-    );
+    throw new Error("Could not load orders: " + error.message);
   }
 
   orders = data || [];
@@ -243,10 +269,7 @@ async function loadOrders() {
           .in("id", productIds);
 
         if (productError) {
-          console.error(
-            "Product details error:",
-            productError
-          );
+          console.error("Product details error:", productError);
 
         } else {
           (products || []).forEach(product => {
@@ -286,9 +309,7 @@ async function loadOrders() {
 
       orders.forEach(order => {
         const key = String(order.id);
-
-        const itemsForOrder =
-          orderItemsByOrder[key] || [];
+        const itemsForOrder = orderItemsByOrder[key] || [];
 
         orderItemNames[key] = itemsForOrder.length
           ? itemsForOrder.map(item =>
@@ -306,9 +327,7 @@ async function loadOrders() {
 
   showMessage(
     "dashboardMessage",
-    "Orders refreshed. " +
-      orders.length +
-      " order(s) loaded."
+    "Orders refreshed. " + orders.length + " order(s) loaded."
   );
 }
 
@@ -378,10 +397,8 @@ function renderOrders() {
 
   filtered.forEach(order => {
     const tr = document.createElement("tr");
-    const items =
-      orderItemsByOrder[String(order.id)] || [];
+    const items = orderItemsByOrder[String(order.id)] || [];
 
-    /* Order ID */
     tr.appendChild(makeCell(order.id));
 
     /* Item images */
@@ -395,7 +412,6 @@ function renderOrders() {
       img.src = item.image_url;
       img.alt = item.name || "Ordered product";
       img.loading = "lazy";
-
       img.style.width = "55px";
       img.style.height = "55px";
       img.style.objectFit = "cover";
@@ -411,7 +427,7 @@ function renderOrders() {
 
     tr.appendChild(imageCell);
 
-    /* Item names */
+    /* Item names and quantities */
     const nameCell = document.createElement("td");
 
     if (items.length > 0) {
@@ -420,61 +436,41 @@ function renderOrders() {
 
         itemName.textContent =
           item.name +
-          (item.quantity > 1
-            ? " × " + item.quantity
-            : "");
+          (item.quantity > 1 ? " × " + item.quantity : "");
 
         itemName.style.marginBottom = "6px";
-
         nameCell.appendChild(itemName);
       });
 
     } else {
       nameCell.textContent =
-        orderItemNames[String(order.id)] ||
-        "No items found";
+        orderItemNames[String(order.id)] || "No items found";
     }
 
     tr.appendChild(nameCell);
 
-    /* Customer name */
     tr.appendChild(
       makeCell(order.customer_name || "Name not saved")
     );
 
-    /* Customer contact */
     const contact = [
       order.customer_email,
       order.customer_phone || order.mpesa_phone
     ].filter(Boolean).join(" / ");
 
+    tr.appendChild(makeCell(contact || "Contact not saved"));
+    tr.appendChild(makeCell(money(order.total_amount)));
+    tr.appendChild(makeStatus(order.payment_status || "Pending"));
+
     tr.appendChild(
-      makeCell(contact || "Contact not saved")
+      makeCell(order.mpesa_receipt_number || "Not paid yet")
     );
 
-    /* Order total */
-    tr.appendChild(
-      makeCell(money(order.total_amount))
-    );
-
-    /* Payment status */
-    tr.appendChild(
-      makeStatus(order.payment_status || "Pending")
-    );
-
-    /* M-Pesa receipt */
-    tr.appendChild(
-      makeCell(
-        order.mpesa_receipt_number || "Not paid yet"
-      )
-    );
-
-    /* Delivery status */
     tr.appendChild(
       makeStatus(order.delivery_status || "pending")
     );
 
-    /* Delivery update controls */
+    /* Delivery status controls */
     const actionCell = document.createElement("td");
     const select = document.createElement("select");
 
@@ -496,8 +492,7 @@ function renderOrders() {
 
       option.value = status;
       option.textContent =
-        status.charAt(0).toUpperCase() +
-        status.slice(1);
+        status.charAt(0).toUpperCase() + status.slice(1);
 
       select.appendChild(option);
     });
@@ -521,9 +516,7 @@ function renderOrders() {
       if (!confirm(
         "Update delivery status for this order to " +
         newStatus + "?"
-      )) {
-        return;
-      }
+      )) return;
 
       saveButton.disabled = true;
 
@@ -550,10 +543,7 @@ function renderOrders() {
         );
 
       } catch (error) {
-        console.error(
-          "Delivery update error:",
-          error
-        );
+        console.error("Delivery update error:", error);
 
         showMessage(
           "dashboardMessage",
@@ -565,9 +555,7 @@ function renderOrders() {
     });
 
     actionCell.appendChild(select);
-    actionCell.appendChild(
-      document.createElement("br")
-    );
+    actionCell.appendChild(document.createElement("br"));
     actionCell.appendChild(saveButton);
 
     tr.appendChild(actionCell);
@@ -580,7 +568,6 @@ function renderOrders() {
 ===================================================== */
 
 function showStaffSection(section) {
-  /* Prevent non-admins from opening Users. */
   if (section === "users" && currentRole !== "admin") {
     showMessage(
       "usersMessage",
@@ -674,10 +661,6 @@ async function loadRegisteredUsers() {
     let hasMore = true;
 
     while (hasMore) {
-      /*
-       * The staff-users Edge Function MUST independently
-       * verify that the caller is an admin.
-       */
       const { data, error } = await db.functions.invoke(
         "staff-users",
         {
@@ -771,11 +754,8 @@ $("backFromUsersBtn")?.addEventListener("click", () => {
 });
 
 /* =====================================================
-   8. VIEW PRODUCTS AND REMOVE PRODUCTS
-===================================================== */
-
-/* =====================================================
-   8. VIEW PRODUCTS, EDIT PRODUCT NAMES AND REMOVE PRODUCTS
+   8. VIEW PRODUCTS
+   ADMIN CAN EDIT NAME, PRICE, STOCK AND REMOVE PRODUCTS
 ===================================================== */
 
 async function loadStaffProducts() {
@@ -796,6 +776,7 @@ async function loadStaffProducts() {
 
   const loadingRow = document.createElement("tr");
   const loadingCell = makeCell("Loading products...");
+
   loadingCell.colSpan = 7;
   loadingRow.appendChild(loadingCell);
   tbody.appendChild(loadingRow);
@@ -819,6 +800,7 @@ async function loadStaffProducts() {
     if (!products || products.length === 0) {
       const row = document.createElement("tr");
       const cell = makeCell("No products found.");
+
       cell.colSpan = 7;
       row.appendChild(cell);
       tbody.appendChild(row);
@@ -856,7 +838,7 @@ async function loadStaffProducts() {
 
       row.appendChild(imageCell);
 
-      /* Product name with Edit and Save controls */
+      /* Product name */
       const nameCell = document.createElement("td");
       const nameInput = document.createElement("input");
 
@@ -864,10 +846,7 @@ async function loadStaffProducts() {
       nameInput.value = safeText(product.name);
       nameInput.maxLength = 150;
       nameInput.placeholder = "Enter product name";
-      nameInput.setAttribute(
-        "aria-label",
-        "Product name for product " + product.id
-      );
+      nameInput.setAttribute("aria-label", "Product name");
       nameInput.style.width = "100%";
       nameInput.style.minWidth = "130px";
       nameInput.disabled = true;
@@ -878,11 +857,35 @@ async function loadStaffProducts() {
       /* Category */
       row.appendChild(makeCell(product.category));
 
-      /* Price */
-      row.appendChild(makeCell(money(product.price)));
+      /* Editable price */
+      const priceCell = document.createElement("td");
+      const priceInput = document.createElement("input");
 
-      /* Stock */
-      row.appendChild(makeCell(product.stock ?? 0));
+      priceInput.type = "number";
+      priceInput.min = "0.01";
+      priceInput.step = "0.01";
+      priceInput.value = safeText(product.price);
+      priceInput.disabled = true;
+      priceInput.style.width = "100px";
+      priceInput.setAttribute("aria-label", "Product price");
+
+      priceCell.appendChild(priceInput);
+      row.appendChild(priceCell);
+
+      /* Editable stock */
+      const stockCell = document.createElement("td");
+      const stockInput = document.createElement("input");
+
+      stockInput.type = "number";
+      stockInput.min = "0";
+      stockInput.step = "1";
+      stockInput.value = safeText(product.stock ?? 0);
+      stockInput.disabled = true;
+      stockInput.style.width = "80px";
+      stockInput.setAttribute("aria-label", "Product stock");
+
+      stockCell.appendChild(stockInput);
+      row.appendChild(stockCell);
 
       /* Product status */
       const statusCell = document.createElement("td");
@@ -928,7 +931,12 @@ async function loadStaffProducts() {
           if (!requireAdmin("productsMessage")) return;
 
           nameInput.value = safeText(product.name);
+          priceInput.value = safeText(product.price);
+          stockInput.value = safeText(product.stock ?? 0);
+
           nameInput.disabled = false;
+          priceInput.disabled = false;
+          stockInput.disabled = false;
 
           editBtn.hidden = true;
           saveBtn.hidden = false;
@@ -940,50 +948,79 @@ async function loadStaffProducts() {
           showMessage(
             "productsMessage",
             'Editing "' + safeText(product.name) +
-            '". Enter the new name and tap Save.'
+            '". Update the name, price or stock, then tap Save.'
           );
         });
 
-        /* Save the updated product name */
+        /* Save product name, price and stock */
         saveBtn.addEventListener("click", async () => {
           if (!requireAdmin("productsMessage")) return;
 
           const newName = nameInput.value.trim();
+          const newPrice = Number(priceInput.value);
+          const newStock = Number(stockInput.value);
 
-          if (!newName) {
+          if (!newName || newName.length > 150) {
             showMessage(
               "productsMessage",
-              "Product name cannot be empty."
+              "Enter a product name of 1–150 characters."
             );
+
             nameInput.focus();
             return;
           }
 
-          if (newName.length > 150) {
+          if (
+            priceInput.value.trim() === "" ||
+            !Number.isFinite(newPrice) ||
+            newPrice <= 0
+          ) {
             showMessage(
               "productsMessage",
-              "Product name must not exceed 150 characters."
+              "Enter a valid price greater than zero."
             );
+
+            priceInput.focus();
             return;
           }
 
-          if (newName === safeText(product.name)) {
+          if (
+            stockInput.value.trim() === "" ||
+            !Number.isInteger(newStock) ||
+            newStock < 0
+          ) {
+            showMessage(
+              "productsMessage",
+              "Stock must be a whole number of zero or more."
+            );
+
+            stockInput.focus();
+            return;
+          }
+
+          const changed =
+            newName !== safeText(product.name) ||
+            newPrice !== Number(product.price) ||
+            newStock !== Number(product.stock ?? 0);
+
+          if (!changed) {
             nameInput.disabled = true;
+            priceInput.disabled = true;
+            stockInput.disabled = true;
+
             editBtn.hidden = false;
             saveBtn.hidden = true;
             cancelBtn.hidden = true;
 
-            showMessage(
-              "productsMessage",
-              "No changes were made."
-            );
+            showMessage("productsMessage", "No changes were made.");
             return;
           }
 
           const confirmed = confirm(
-            'Change product name from "' +
-            safeText(product.name) +
-            '" to "' + newName + '"?'
+            "Save these product changes?\n\n" +
+            "Name: " + newName + "\n" +
+            "Price: " + money(newPrice) + "\n" +
+            "Stock: " + newStock
           );
 
           if (!confirmed) return;
@@ -994,72 +1031,53 @@ async function loadStaffProducts() {
 
           showMessage(
             "productsMessage",
-            "Saving product name..."
+            "Saving product changes..."
           );
 
           try {
-            /* Verify the active Supabase session */
-            const {
-              data: sessionData,
-              error: sessionError
-            } = await db.auth.getSession();
+            /* Verify session and admin role */
+            await verifyAdminSession();
 
-            if (sessionError) throw sessionError;
-
-            const userId = sessionData?.session?.user?.id;
-
-            if (!userId) {
-              throw new Error(
-                "Your session has expired. Please sign in again."
-              );
-            }
-
-            /* Verify that the signed-in user is an admin */
-            const {
-              data: roleData,
-              error: roleError
-            } = await db
-              .from("staff_roles")
-              .select("role")
-              .eq("user_id", userId)
-              .maybeSingle();
-
-            if (roleError) throw roleError;
-
-            if (
-              safeText(roleData?.role).toLowerCase() !== "admin"
-            ) {
-              throw new Error(
-                "Only an administrator can edit product names."
-              );
-            }
-
-            /* Update the product in Supabase */
+            /* Save changes to Supabase */
             const {
               data: updatedRows,
               error: updateError
             } = await db
               .from("products")
-              .update({ name: newName })
+              .update({
+                name: newName,
+                price: newPrice,
+                stock: newStock
+              })
               .eq("id", product.id)
-              .select("id, name");
+              .select("id, name, price, stock");
 
             if (updateError) throw updateError;
 
             if (!updatedRows || updatedRows.length === 0) {
               throw new Error(
-                "No product was updated. Check the products " +
-                "table UPDATE and SELECT RLS policies."
+                "No product was updated. Check the products table " +
+                "UPDATE and SELECT RLS policies."
               );
             }
 
-            /* Update the displayed product */
+            /* Update local product data */
             product.name = updatedRows[0].name;
-            nameInput.value = product.name;
-            nameInput.disabled = true;
+            product.price = updatedRows[0].price;
+            product.stock = updatedRows[0].stock;
 
-            if (imageCell.querySelector("img")) {
-              imageCell.querySelector("img").alt = product.name;
+            nameInput.value = safeText(product.name);
+            priceInput.value = safeText(product.price);
+            stockInput.value = safeText(product.stock);
+
+            nameInput.disabled = true;
+            priceInput.disabled = true;
+            stockInput.disabled = true;
+
+            const productImage = imageCell.querySelector("img");
+
+            if (productImage) {
+              productImage.alt = product.name;
             }
 
             editBtn.hidden = false;
@@ -1068,15 +1086,15 @@ async function loadStaffProducts() {
 
             showMessage(
               "productsMessage",
-              "Product name updated successfully!"
+              "Product name, price and stock updated successfully!"
             );
 
           } catch (error) {
-            console.error("Product name update error:", error);
+            console.error("Product update error:", error);
 
             showMessage(
               "productsMessage",
-              "Could not update product name: " + error.message
+              "Could not update product: " + error.message
             );
 
           } finally {
@@ -1089,23 +1107,25 @@ async function loadStaffProducts() {
         /* Cancel editing */
         cancelBtn.addEventListener("click", () => {
           nameInput.value = safeText(product.name);
+          priceInput.value = safeText(product.price);
+          stockInput.value = safeText(product.stock ?? 0);
+
           nameInput.disabled = true;
+          priceInput.disabled = true;
+          stockInput.disabled = true;
 
           editBtn.hidden = false;
           saveBtn.hidden = true;
           cancelBtn.hidden = true;
 
-          showMessage(
-            "productsMessage",
-            "Editing cancelled."
-          );
+          showMessage("productsMessage", "Editing cancelled.");
         });
 
         actionCell.appendChild(editBtn);
         actionCell.appendChild(saveBtn);
         actionCell.appendChild(cancelBtn);
 
-        /* Keep product removal admin-only */
+        /* Admin-only product removal */
         if (active) {
           const removeBtn = document.createElement("button");
 
@@ -1128,39 +1148,7 @@ async function loadStaffProducts() {
             removeBtn.disabled = true;
 
             try {
-              const {
-                data: sessionData,
-                error: sessionError
-              } = await db.auth.getSession();
-
-              if (sessionError) throw sessionError;
-
-              const userId = sessionData?.session?.user?.id;
-
-              if (!userId) {
-                throw new Error(
-                  "No active session. Please sign in again."
-                );
-              }
-
-              const {
-                data: roleData,
-                error: roleError
-              } = await db
-                .from("staff_roles")
-                .select("role")
-                .eq("user_id", userId)
-                .maybeSingle();
-
-              if (roleError) throw roleError;
-
-              if (
-                safeText(roleData?.role).toLowerCase() !== "admin"
-              ) {
-                throw new Error(
-                  "Only an administrator can remove products."
-                );
-              }
+              await verifyAdminSession();
 
               const {
                 data: updatedRows,
@@ -1219,6 +1207,7 @@ async function loadStaffProducts() {
 
     const row = document.createElement("tr");
     const cell = makeCell("Unable to load products.");
+
     cell.colSpan = 7;
     row.appendChild(cell);
     tbody.appendChild(row);
@@ -1487,10 +1476,7 @@ if (productImageInput && productPreview) {
     }
 
     if (!file.type.startsWith("image/")) {
-      showMessage(
-        "productMessage",
-        "Choose an image file."
-      );
+      showMessage("productMessage", "Choose an image file.");
 
       this.value = "";
       productPreview.hidden = true;
@@ -1511,10 +1497,7 @@ if (productImageInput && productPreview) {
     productPreview.src = URL.createObjectURL(file);
     productPreview.hidden = false;
 
-    showMessage(
-      "productMessage",
-      "Image ready to upload."
-    );
+    showMessage("productMessage", "Image ready to upload.");
   });
 }
 
@@ -1573,10 +1556,7 @@ $("addProductForm")?.addEventListener(
     }
 
     if (!file.type.startsWith("image/")) {
-      showMessage(
-        "productMessage",
-        "Choose a valid image file."
-      );
+      showMessage("productMessage", "Choose a valid image file.");
       return;
     }
 
