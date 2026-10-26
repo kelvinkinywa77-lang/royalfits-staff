@@ -763,7 +763,21 @@ async function loadStaffProducts() {
                 .eq("is_active", true)
                 .select("id");
 
-            if (updateError) throw updateError;
+            if (updateError) {
+  console.error("Supabase product update details:", {
+    message: updateError.message,
+    code: updateError.code,
+    details: updateError.details,
+    hint: updateError.hint
+  });
+
+  throw new Error(
+    updateError.message +
+    (updateError.code ? " (Code: " + updateError.code + ")" : "") +
+    (updateError.details ? " Details: " + updateError.details : "") +
+    (updateError.hint ? " Hint: " + updateError.hint : "")
+  );
+}
 
             if (!updatedRows || updatedRows.length === 0) {
               throw new Error(
