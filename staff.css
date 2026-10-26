@@ -672,3 +672,40 @@ footer {
     font-size: 24px;
   }
 }
+
+/* FIX: Make product action buttons visible */
+#viewProductsPanel .table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+#viewProductsPanel table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+}
+
+#viewProductsPanel th,
+#viewProductsPanel td {
+  padding: 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+#viewProductsPanel td:last-child button {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+#viewProductsPanel td:last-child button[hidden] {
+  display: none !important;
+}
+
+#viewProductsPanel td:last-child {
+  min-width: 190px;
+  white-space: nowrap;
+}
