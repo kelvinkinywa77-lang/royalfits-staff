@@ -1,7 +1,8 @@
 
 /* =====================================================
    ROYAL FITS BOUTIQUE254
-   STAFF DASHBOARD STYLES
+   COMPLETE STAFF DASHBOARD STYLES
+   Desktop, tablet and mobile responsive
 ===================================================== */
 
 /* 1. COLOURS */
@@ -21,13 +22,20 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   background: var(--cream);
   color: #292929;
+  min-width: 280px;
 }
 
+/* Ensure hidden panels stay hidden on all devices */
 [hidden] {
   display: none !important;
 }
@@ -52,6 +60,7 @@ body {
 .topbar h1 {
   margin: 0;
   font-size: 23px;
+  overflow-wrap: anywhere;
 }
 
 .topbar p {
@@ -75,6 +84,15 @@ body {
   margin: 40px auto;
 }
 
+#dashboardPanel,
+#homePanel,
+#productPanel,
+#viewProductsPanel,
+#usersPanel,
+#customerOrdersPanel {
+  min-width: 0;
+}
+
 /* 5. FORMS AND INPUTS */
 
 label {
@@ -84,7 +102,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-width: 0;
   padding: 12px;
@@ -92,12 +111,23 @@ select {
   border-radius: 7px;
   font: inherit;
   background: white;
+  color: #292929;
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: 2px solid var(--orange);
   outline-offset: 1px;
+}
+
+input[type="file"] {
+  max-width: 100%;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
 }
 
 /* 6. BUTTONS */
@@ -107,12 +137,20 @@ button {
   border: 0;
   border-radius: 7px;
   padding: 11px 16px;
+  font-family: inherit;
   font-weight: bold;
   font-size: 14px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:hover {
   opacity: 0.88;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 3px;
 }
 
 button:disabled {
@@ -130,11 +168,13 @@ button:disabled {
 .secondary-btn {
   background: var(--dark);
   color: white;
+  margin: 4px 4px 8px 0;
 }
 
 .logout-btn {
   background: white;
   color: var(--dark);
+  flex-shrink: 0;
 }
 
 /* 7. DASHBOARD MENU */
@@ -144,9 +184,15 @@ button:disabled {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   margin-top: 24px;
+  width: 100%;
 }
 
-.menu-btn {
+.dashboard-menu .menu-btn {
+  display: block;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-width: 0;
   min-height: 100px;
   padding: 20px 12px;
   border-radius: 14px;
@@ -155,15 +201,19 @@ button:disabled {
   font-size: 17px;
   font-weight: 700;
   box-shadow: 0 4px 12px #26103320;
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
-.menu-btn:hover {
+.dashboard-menu .menu-btn:hover {
   background: #38533e;
 }
 
-/* 8. PRODUCT MANAGEMENT */
+/* 8. ADD PRODUCT PANEL */
 
 .product-admin {
+  width: 100%;
+  min-width: 0;
   background: white;
   padding: 20px;
   margin: 20px 0;
@@ -178,11 +228,17 @@ button:disabled {
 #addProductForm {
   display: grid;
   gap: 10px;
+  width: 100%;
+}
+
+#addProductForm label {
+  margin-bottom: 0;
 }
 
 #addProductForm input,
 #addProductForm select {
   width: 100%;
+  min-width: 0;
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -198,6 +254,7 @@ button:disabled {
 }
 
 #addProductBtn {
+  width: 100%;
   background: var(--orange);
   color: white;
   border: 0;
@@ -206,10 +263,77 @@ button:disabled {
   cursor: pointer;
 }
 
-/* 9. REGISTERED USERS PANEL */
+/* 9. VIEW PRODUCTS PANEL */
+
+#viewProductsPanel {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 20px;
+  margin: 20px 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 5px 18px #3020100d;
+}
+
+#viewProductsPanel h2 {
+  color: var(--dark);
+  margin-top: 20px;
+}
+
+#viewProductsPanel > p {
+  overflow-wrap: anywhere;
+}
+
+#viewProductsPanel .table-responsive {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  margin-top: 16px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+#viewProductsPanel table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  background: white;
+}
+
+#viewProductsPanel th,
+#viewProductsPanel td {
+  padding: 12px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+#viewProductsPanel th {
+  background: var(--dark);
+  color: white;
+  white-space: nowrap;
+}
+
+#viewProductsPanel td img {
+  display: block;
+  max-width: 65px;
+  max-height: 65px;
+  object-fit: contain;
+}
+
+#viewProductsPanel .secondary-btn {
+  min-height: 42px;
+}
+
+/* 10. REGISTERED USERS PANEL */
 
 #usersPanel {
   width: 100%;
+  min-width: 0;
   margin: 20px 0;
   padding: 20px;
   background: white;
@@ -265,13 +389,15 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
-/* 10. CUSTOMER ORDERS TABLE */
+/* 11. CUSTOMER ORDERS TABLE */
 
 .table-wrap {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   margin-top: 20px;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 #customerOrdersPanel table {
@@ -342,7 +468,7 @@ button:disabled {
   margin-top: 10px;
 }
 
-/* 11. ORDER STATISTICS */
+/* 12. ORDER STATISTICS */
 
 .welcome {
   display: flex;
@@ -364,6 +490,7 @@ button:disabled {
 }
 
 .stat-card {
+  min-width: 0;
   background: white;
   padding: 20px;
   border-radius: 10px;
@@ -384,7 +511,7 @@ button:disabled {
   color: var(--dark);
 }
 
-/* 12. PAYMENT AND DELIVERY STATUS LABELS */
+/* 13. PAYMENT AND DELIVERY STATUS LABELS */
 
 .status {
   display: inline-block;
@@ -393,11 +520,13 @@ button:disabled {
   background: #eee;
   font-size: 12px;
   font-weight: bold;
+  overflow-wrap: anywhere;
 }
 
 .status.paid,
 .status.successful,
-.status.delivered {
+.status.delivered,
+.status.active {
   color: #17663b;
   background: #e0f5e7;
 }
@@ -412,16 +541,18 @@ button:disabled {
 
 .status.failed,
 .status.cancelled,
-.status.canceled {
+.status.canceled,
+.status.removed {
   color: var(--red);
   background: #ffe5e5;
 }
 
-/* 13. MESSAGES AND FOOTER */
+/* 14. MESSAGES AND FOOTER */
 
 .message {
   min-height: 20px;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 footer {
@@ -430,7 +561,7 @@ footer {
   color: #777;
 }
 
-/* 14. TABLET AND MOBILE LAYOUT */
+/* 15. TABLET LAYOUT */
 
 @media (max-width: 800px) {
   .stats {
@@ -450,10 +581,23 @@ footer {
     padding: 16px;
   }
 
-  #usersPanel {
+  #usersPanel,
+  #viewProductsPanel {
     padding: 16px;
   }
+
+  .dashboard-menu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .dashboard-menu .menu-btn {
+    min-height: 72px;
+    font-size: 16px;
+  }
 }
+
+/* 16. MOBILE LAYOUT */
 
 @media (max-width: 420px) {
   .stats,
@@ -461,8 +605,12 @@ footer {
     grid-template-columns: 1fr;
   }
 
-  .menu-btn {
-    min-height: 75px;
+  .dashboard-menu .menu-btn {
+    display: block;
+    width: 100%;
+    min-height: 52px;
+    padding: 15px 12px;
+    font-size: 16px;
   }
 
   .container {
@@ -472,9 +620,55 @@ footer {
 
   .topbar {
     padding: 16px 4%;
+    gap: 10px;
+  }
+
+  .topbar h1 {
+    font-size: 18px;
+  }
+
+  .topbar p {
+    font-size: 13px;
   }
 
   .logout-btn {
     padding: 9px;
+    font-size: 12px;
+  }
+
+  .panel,
+  .product-admin,
+  #usersPanel,
+  #viewProductsPanel {
+    padding: 14px;
+  }
+
+  button {
+    min-height: 42px;
+  }
+
+  .secondary-btn {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  #viewProductsPanel table {
+    min-width: 700px;
+  }
+
+  #usersPanel table {
+    min-width: 650px;
+  }
+
+  #customerOrdersPanel table {
+    min-width: 1050px;
+  }
+
+  .stat-card {
+    padding: 15px;
+  }
+
+  .stat-card strong {
+    font-size: 24px;
   }
 }
