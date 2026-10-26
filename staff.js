@@ -774,6 +774,10 @@ $("backFromUsersBtn")?.addEventListener("click", () => {
    8. VIEW PRODUCTS AND REMOVE PRODUCTS
 ===================================================== */
 
+/* =====================================================
+   8. VIEW PRODUCTS, EDIT PRODUCT NAMES AND REMOVE PRODUCTS
+===================================================== */
+
 async function loadStaffProducts() {
   if (!currentRole) {
     showMessage(
@@ -792,14 +796,11 @@ async function loadStaffProducts() {
 
   const loadingRow = document.createElement("tr");
   const loadingCell = makeCell("Loading products...");
-
   loadingCell.colSpan = 7;
   loadingRow.appendChild(loadingCell);
   tbody.appendChild(loadingRow);
 
-  if (refreshBtn) {
-    refreshBtn.disabled = true;
-  }
+  if (refreshBtn) refreshBtn.disabled = true;
 
   showMessage("productsMessage", "Loading products...");
 
@@ -818,7 +819,6 @@ async function loadStaffProducts() {
     if (!products || products.length === 0) {
       const row = document.createElement("tr");
       const cell = makeCell("No products found.");
-
       cell.colSpan = 7;
       row.appendChild(cell);
       tbody.appendChild(row);
@@ -839,7 +839,6 @@ async function loadStaffProducts() {
         img.src = product.image_url;
         img.alt = product.name || "Product image";
         img.loading = "lazy";
-
         img.style.width = "65px";
         img.style.height = "65px";
         img.style.objectFit = "contain";
@@ -851,15 +850,38 @@ async function loadStaffProducts() {
         };
 
         imageCell.appendChild(img);
-
       } else {
         imageCell.textContent = "No image";
       }
 
       row.appendChild(imageCell);
-      row.appendChild(makeCell(product.name));
+
+      /* Product name with Edit and Save controls */
+      const nameCell = document.createElement("td");
+      const nameInput = document.createElement("input");
+
+      nameInput.type = "text";
+      nameInput.value = safeText(product.name);
+      nameInput.maxLength = 150;
+      nameInput.placeholder = "Enter product name";
+      nameInput.setAttribute(
+        "aria-label",
+        "Product name for product " + product.id
+      );
+      nameInput.style.width = "100%";
+      nameInput.style.minWidth = "130px";
+      nameInput.disabled = true;
+
+      nameCell.appendChild(nameInput);
+      row.appendChild(nameCell);
+
+      /* Category */
       row.appendChild(makeCell(product.category));
+
+      /* Price */
       row.appendChild(makeCell(money(product.price)));
+
+      /* Stock */
       row.appendChild(makeCell(product.stock ?? 0));
 
       /* Product status */
@@ -872,46 +894,111 @@ async function loadStaffProducts() {
 
       row.appendChild(statusCell);
 
-      /* Product action */
+      /* Product actions */
       const actionCell = document.createElement("td");
 
-      if (!active) {
-        actionCell.textContent = "Already removed";
-
-      } else if (currentRole !== "admin") {
+      if (currentRole !== "admin") {
         actionCell.textContent = "Admin only";
 
       } else {
-        const removeBtn = document.createElement("button");
+        const editBtn = document.createElement("button");
 
-        removeBtn.type = "button";
-        removeBtn.textContent = "Remove";
-        removeBtn.className = "secondary-btn";
+        editBtn.type = "button";
+        editBtn.textContent = "Edit";
+        editBtn.className = "secondary-btn";
 
-        removeBtn.addEventListener("click", async () => {
+        const saveBtn = document.createElement("button");
+
+        saveBtn.type = "button";
+        saveBtn.textContent = "Save";
+        saveBtn.className = "secondary-btn";
+        saveBtn.style.marginLeft = "5px";
+        saveBtn.hidden = true;
+
+        const cancelBtn = document.createElement("button");
+
+        cancelBtn.type = "button";
+        cancelBtn.textContent = "Cancel";
+        cancelBtn.className = "secondary-btn";
+        cancelBtn.style.marginLeft = "5px";
+        cancelBtn.hidden = true;
+
+        /* Enter edit mode */
+        editBtn.addEventListener("click", () => {
           if (!requireAdmin("productsMessage")) return;
 
+          nameInput.value = safeText(product.name);
+          nameInput.disabled = false;
+
+          editBtn.hidden = true;
+          saveBtn.hidden = false;
+          cancelBtn.hidden = false;
+
+          nameInput.focus();
+          nameInput.select();
+
+          showMessage(
+            "productsMessage",
+            'Editing "' + safeText(product.name) +
+            '". Enter the new name and tap Save.'
+          );
+        });
+
+        /* Save the updated product name */
+        saveBtn.addEventListener("click", async () => {
+          if (!requireAdmin("productsMessage")) return;
+
+          const newName = nameInput.value.trim();
+
+          if (!newName) {
+            showMessage(
+              "productsMessage",
+              "Product name cannot be empty."
+            );
+            nameInput.focus();
+            return;
+          }
+
+          if (newName.length > 150) {
+            showMessage(
+              "productsMessage",
+              "Product name must not exceed 150 characters."
+            );
+            return;
+          }
+
+          if (newName === safeText(product.name)) {
+            nameInput.disabled = true;
+            editBtn.hidden = false;
+            saveBtn.hidden = true;
+            cancelBtn.hidden = true;
+
+            showMessage(
+              "productsMessage",
+              "No changes were made."
+            );
+            return;
+          }
+
           const confirmed = confirm(
-            'Remove "' + product.name +
-            '" from the online shop? This will deactivate it ' +
-            "without permanently deleting the database record."
+            'Change product name from "' +
+            safeText(product.name) +
+            '" to "' + newName + '"?'
           );
 
           if (!confirmed) return;
 
-          removeBtn.disabled = true;
+          saveBtn.disabled = true;
+          editBtn.disabled = true;
+          cancelBtn.disabled = true;
 
           showMessage(
             "productsMessage",
-            "Checking admin permissions..."
+            "Saving product name..."
           );
 
           try {
-            /*
-             * Check the actual signed-in session and role.
-             * This is diagnostic; the database RLS policy
-             * must still enforce authorization.
-             */
+            /* Verify the active Supabase session */
             const {
               data: sessionData,
               error: sessionError
@@ -921,115 +1008,199 @@ async function loadStaffProducts() {
 
             const userId = sessionData?.session?.user?.id;
 
-            console.log("Logged-in user ID:", userId);
-
             if (!userId) {
               throw new Error(
-                "No active Supabase session. Sign in again."
+                "Your session has expired. Please sign in again."
               );
             }
 
+            /* Verify that the signed-in user is an admin */
             const {
               data: roleData,
               error: roleError
             } = await db
               .from("staff_roles")
-              .select("user_id, role")
-              .eq("user_id", userId);
+              .select("role")
+              .eq("user_id", userId)
+              .maybeSingle();
 
-            console.log("Admin role lookup:", roleData);
-            console.log("Admin role lookup error:", roleError);
+            if (roleError) throw roleError;
 
-            if (roleError) {
+            if (
+              safeText(roleData?.role).toLowerCase() !== "admin"
+            ) {
               throw new Error(
-                "Could not verify your admin role: " +
-                roleError.message
+                "Only an administrator can edit product names."
               );
             }
 
-            const isAdmin = (roleData || []).some(
-              roleRow =>
-                roleRow.user_id === userId &&
-                safeText(roleRow.role).toLowerCase() === "admin"
-            );
-
-            if (!isAdmin) {
-              throw new Error(
-                "Your current login is not recognized as an admin. " +
-                "Check the user ID and role in staff_roles."
-              );
-            }
-
-            showMessage(
-              "productsMessage",
-              "Admin verified. Removing product..."
-            );
-
-            /*
-             * Soft removal: keep the record and its order history.
-             */
+            /* Update the product in Supabase */
             const {
               data: updatedRows,
               error: updateError
             } = await db
               .from("products")
-              .update({ is_active: false })
+              .update({ name: newName })
               .eq("id", product.id)
-              .eq("is_active", true)
-              .select("id");
+              .select("id, name");
 
-            if (updateError) {
-              console.error(
-                "Supabase product update details:",
-                {
-                  message: updateError.message,
-                  code: updateError.code,
-                  details: updateError.details,
-                  hint: updateError.hint
-                }
-              );
-
-              throw new Error(
-                updateError.message +
-                (updateError.code
-                  ? " (Code: " + updateError.code + ")"
-                  : "") +
-                (updateError.details
-                  ? " Details: " + updateError.details
-                  : "") +
-                (updateError.hint
-                  ? " Hint: " + updateError.hint
-                  : "")
-              );
-            }
+            if (updateError) throw updateError;
 
             if (!updatedRows || updatedRows.length === 0) {
               throw new Error(
-                "No product was updated. Check the product's " +
-                "current status and Supabase UPDATE/SELECT policies."
+                "No product was updated. Check the products " +
+                "table UPDATE and SELECT RLS policies."
               );
             }
 
+            /* Update the displayed product */
+            product.name = updatedRows[0].name;
+            nameInput.value = product.name;
+            nameInput.disabled = true;
+
+            if (imageCell.querySelector("img")) {
+              imageCell.querySelector("img").alt = product.name;
+            }
+
+            editBtn.hidden = false;
+            saveBtn.hidden = true;
+            cancelBtn.hidden = true;
+
             showMessage(
               "productsMessage",
-              "Product removed from the online shop."
+              "Product name updated successfully!"
             );
-
-            await loadStaffProducts();
 
           } catch (error) {
-            console.error("Remove product error:", error);
+            console.error("Product name update error:", error);
 
             showMessage(
               "productsMessage",
-              "Could not remove product: " + error.message
+              "Could not update product name: " + error.message
             );
 
-            removeBtn.disabled = false;
+          } finally {
+            saveBtn.disabled = false;
+            editBtn.disabled = false;
+            cancelBtn.disabled = false;
           }
         });
 
-        actionCell.appendChild(removeBtn);
+        /* Cancel editing */
+        cancelBtn.addEventListener("click", () => {
+          nameInput.value = safeText(product.name);
+          nameInput.disabled = true;
+
+          editBtn.hidden = false;
+          saveBtn.hidden = true;
+          cancelBtn.hidden = true;
+
+          showMessage(
+            "productsMessage",
+            "Editing cancelled."
+          );
+        });
+
+        actionCell.appendChild(editBtn);
+        actionCell.appendChild(saveBtn);
+        actionCell.appendChild(cancelBtn);
+
+        /* Keep product removal admin-only */
+        if (active) {
+          const removeBtn = document.createElement("button");
+
+          removeBtn.type = "button";
+          removeBtn.textContent = "Remove";
+          removeBtn.className = "secondary-btn";
+          removeBtn.style.marginLeft = "5px";
+
+          removeBtn.addEventListener("click", async () => {
+            if (!requireAdmin("productsMessage")) return;
+
+            const confirmed = confirm(
+              'Remove "' + safeText(product.name) +
+              '" from the online shop? ' +
+              "This deactivates the product without deleting it."
+            );
+
+            if (!confirmed) return;
+
+            removeBtn.disabled = true;
+
+            try {
+              const {
+                data: sessionData,
+                error: sessionError
+              } = await db.auth.getSession();
+
+              if (sessionError) throw sessionError;
+
+              const userId = sessionData?.session?.user?.id;
+
+              if (!userId) {
+                throw new Error(
+                  "No active session. Please sign in again."
+                );
+              }
+
+              const {
+                data: roleData,
+                error: roleError
+              } = await db
+                .from("staff_roles")
+                .select("role")
+                .eq("user_id", userId)
+                .maybeSingle();
+
+              if (roleError) throw roleError;
+
+              if (
+                safeText(roleData?.role).toLowerCase() !== "admin"
+              ) {
+                throw new Error(
+                  "Only an administrator can remove products."
+                );
+              }
+
+              const {
+                data: updatedRows,
+                error: updateError
+              } = await db
+                .from("products")
+                .update({ is_active: false })
+                .eq("id", product.id)
+                .eq("is_active", true)
+                .select("id");
+
+              if (updateError) throw updateError;
+
+              if (!updatedRows || updatedRows.length === 0) {
+                throw new Error(
+                  "No product was updated. Check Supabase RLS policies."
+                );
+              }
+
+              showMessage(
+                "productsMessage",
+                "Product removed from the online shop."
+              );
+
+              await loadStaffProducts();
+
+            } catch (error) {
+              console.error("Remove product error:", error);
+
+              showMessage(
+                "productsMessage",
+                "Could not remove product: " + error.message
+              );
+
+              removeBtn.disabled = false;
+            }
+          });
+
+          actionCell.appendChild(removeBtn);
+        }
       }
 
       row.appendChild(actionCell);
@@ -1048,7 +1219,6 @@ async function loadStaffProducts() {
 
     const row = document.createElement("tr");
     const cell = makeCell("Unable to load products.");
-
     cell.colSpan = 7;
     row.appendChild(cell);
     tbody.appendChild(row);
@@ -1059,9 +1229,7 @@ async function loadStaffProducts() {
     );
 
   } finally {
-    if (refreshBtn) {
-      refreshBtn.disabled = false;
-    }
+    if (refreshBtn) refreshBtn.disabled = false;
   }
 }
 
