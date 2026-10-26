@@ -14,6 +14,7 @@
 </head>
 
 <body>
+
   <!-- HEADER -->
   <header class="topbar">
     <div>
@@ -92,6 +93,13 @@
             id="addProductMenuBtn"
             class="menu-btn">
             ➕ Add Product
+          </button>
+
+          <button
+            type="button"
+            id="viewProductsMenuBtn"
+            class="menu-btn">
+            📦 View Products
           </button>
 
           <button
@@ -200,6 +208,66 @@
         </form>
       </section>
 
+      <!-- VIEW AND REMOVE PRODUCTS PANEL -->
+      <section id="viewProductsPanel" hidden>
+
+        <button
+          type="button"
+          id="backFromViewProductsBtn"
+          class="secondary-btn">
+          ← Back to Dashboard
+        </button>
+
+        <h2>Manage Products</h2>
+
+        <p>
+          View products in your ROYAL FITS online shop.
+        </p>
+
+        <button
+          type="button"
+          id="refreshProductsBtn"
+          class="secondary-btn">
+          🔄 Refresh Products
+        </button>
+
+        <p
+          id="productsMessage"
+          class="message"
+          role="status">
+        </p>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody id="productsTableBody">
+              <tr>
+                <td colspan="7">
+                  Sign in to view products.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Removing a product should deactivate it from the shop
+          rather than permanently erase order-related records.
+        </p>
+
+      </section>
+
       <!-- REGISTERED USERS PANEL -->
       <section id="usersPanel" hidden>
 
@@ -220,7 +288,11 @@
           Refresh Users
         </button>
 
-        <p id="usersMessage" class="message" role="status"></p>
+        <p
+          id="usersMessage"
+          class="message"
+          role="status">
+        </p>
 
         <div class="table-responsive">
           <table>
@@ -242,6 +314,7 @@
             </tbody>
           </table>
         </div>
+
       </section>
 
       <!-- CUSTOMER ORDERS PANEL -->
@@ -340,6 +413,7 @@
         </section>
 
       </section>
+
     </section>
   </main>
 
@@ -347,5 +421,6 @@
   <footer>
     <p>© 2026 Royal Fits Boutique254. Staff access only.</p>
   </footer>
+
 </body>
 </html>
